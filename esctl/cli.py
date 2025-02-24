@@ -1,0 +1,99 @@
+import importlib
+import logging
+
+import typer
+from jmespath import compile as compile_jmespath
+from jsonpath_ng import parse as parse_jsonpath
+from rich.logging import RichHandler
+from yamlpath import YAMLPath
+
+from esctl.params import ContextOption, JMESPathOption, JSONPathOption, PrettyOption, VerboseOption, YAMLPathOption
+
+from .commands.cat import app as cat_app
+from .commands.cluster import app as cluster_app
+from .commands.config import app as config_app
+from .config import read_config
+
+app = typer.Typer()
+cat_app.root = app
+cluster_app.root = app
+config_app.root = app
+app.add_typer(
+    cat_app,
+    name="cat",
+    help="Compact and aligned text (CAT) APIs for Elasticsearch",
+)
+app.add_typer(cluster_app, name="cluster", help="Elasticsearch Cluster management APIs")
+app.add_typer(config_app, name="config", help="Manage esctl configuration")
+
+cfg = read_config()
+
+
+def alias_factory(command: str, args: list[str]):
+    def callback(ctx: typer.Context):
+        module = importlib.import_module(f".{command}", package="esctl.commands")
+        cmd_name = command.split(".")[-1]
+        cmd = getattr(module, cmd_name)
+        ctx.invoke(cmd, ctx, **args)
+
+    return callback
+
+
+for alias_name, alias in cfg.aliases.items():
+    app.command(alias_name, help=alias["help"], short_help=alias["help"])(
+        alias_factory(alias["command"], alias["args"])
+    )
+
+
+@app.callback(invoke_without_command=True)
+def callback(
+    ctx: typer.Context,
+    context: ContextOption = None,
+    verbose: VerboseOption = 0,
+    jsonpath: JSONPathOption = None,
+    jmespath: JMESPathOption = None,
+    yamlpath: YAMLPathOption = None,
+    pretty: PrettyOption = True,
+):
+    # Make jsonpath, jmespath and yamlpath mutually exclusive
+    if len([arg for arg in (jsonpath, jmespath, yamlpath) if arg]) > 1:
+        raise typer.BadParameter(
+            "--jsonpath, --jmespath and --yamlpath are mutually exclusive"
+        )
+    level = {
+        0: logging.ERROR,
+        1: logging.WARNING,
+        2: logging.INFO,
+        3: logging.DEBUG,
+        4: logging.NOTSET,
+    }[verbose]
+    logging.basicConfig(
+        level=level,
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler(markup=True, rich_tracebacks=True)],
+    )
+    logger = logging.getLogger("esctl")
+
+    if context is not None:
+        cfg.current_context = context
+
+    conf = cfg.contexts.get(cfg.current_context)
+
+    ctx.obj = {
+        "config": cfg,
+        "context": conf,
+        "verbosity": verbose,
+        "logger": logger,
+        "jsonpath": jsonpath,
+        "jmespath": jmespath,
+        "yamlpath": yamlpath,
+        "pretty": pretty,
+    }
+    ctx.obj["jsonpath"] = parse_jsonpath(jsonpath) if jsonpath else None
+    ctx.obj["jmespath"] = compile_jmespath(jmespath) if jmespath else None
+    ctx.obj["yamlpath"] = YAMLPath(yamlpath) if yamlpath else None
+
+
+if __name__ == "__main__":
+    app()

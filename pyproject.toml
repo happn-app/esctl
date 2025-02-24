@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "esctl"
+version = "0.1.0"
+description = "CLI tool to run commands on ES clusters"
+authors = ["Simon Bordeyne <simon.bordeyne@happn.fr>"]
+readme = "README.md"
+scripts = { "esctl" = "esctl.cli:app" }
+
+[tool.poetry.dependencies]
+python = "^3.10"
+rich = "^13.9.4"
+requests = "^2.32.3"
+typer = "^0.15.1"
+jmespath = "^1.0.1"
+elasticsearch = "^8.17.1"
+pydantic = "^2.10.6"
+jsonpath-ng = "^1.7.0"
+yamlpath = "^3.8.2"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.9.7"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
