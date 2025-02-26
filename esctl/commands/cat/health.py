@@ -5,7 +5,13 @@ import typer
 from esctl.config import get_client_from_ctx
 from esctl.models.enums import Format
 from esctl.output import pretty_print
-from esctl.params import FormatOption, HeaderOption, SortOption, TimeOption
+from esctl.params import (
+    FormatOption,
+    HeaderOption,
+    SortOption,
+    TimeOption,
+    TimestampOption,
+)
 from esctl.selectors import select_from_context
 from esctl.utils import get_cat_base_params_from_context
 
@@ -56,7 +62,7 @@ def health(
     header: HeaderOption = None,
     sort: SortOption = None,
     time: TimeOption = None,
-    ts: bool = False,
+    ts: TimestampOption = False,
     format: FormatOption = Format.text,
 ):
     params = get_cat_base_params_from_context(ctx, format)

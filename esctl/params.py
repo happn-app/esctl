@@ -12,6 +12,23 @@ from esctl.completions import (
 )
 from esctl.models.enums import ByteUnit, Format, TimeUnit
 
+IncludeUnloadedSegmentsOption = Annotated[
+    bool,
+    typer.Option(
+        "--include-unloaded-segments",
+        help="If true, the response includes information from segments that are not loaded into memory. Defaults to false. ",
+    )
+]
+TimestampOption = Annotated[
+    bool,
+    typer.Option(
+        "--no-timestamp",
+        "--no-ts",
+        is_flag=True,
+        flag_value=False,
+        help="If true, returns HH:MM:SS and Unix epoch timestamps. Defaults to true.",
+    )
+]
 FormatOption = Annotated[
     Format,
     typer.Option(
@@ -178,6 +195,7 @@ ContextOption = Annotated[
         "-c",
         autocompletion=complete_context,
         help="Elasticsearch cluster to use",
+        envvar="ESCTL_CONTEXT",
     ),
 ]
 VerboseOption = Annotated[

@@ -8,6 +8,7 @@ from esctl.params import (
     FormatOption,
     FullIdOption,
     HeaderOption,
+    IncludeUnloadedSegmentsOption,
     SortOption,
     TimeOption,
 )
@@ -25,7 +26,7 @@ def nodes(
     time: TimeOption = None,
     bytes: BytesOption = None,
     full_id: FullIdOption = True,
-    include_unloaded_segments: bool = False,
+    include_unloaded_segments: IncludeUnloadedSegmentsOption = False,
     format: FormatOption = Format.text,
 ):
     params = get_cat_base_params_from_context(ctx, format)
