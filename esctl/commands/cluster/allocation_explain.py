@@ -33,5 +33,5 @@ def allocation_explain(
         shard=shard,
         index=index,
         primary=primary,
-    )
+    ).raw
     pretty_print(response, format=Format.json)

@@ -32,5 +32,5 @@ def reroute(
             raise typer.Abort()
     response = client.cluster.reroute(
         dry_run=dry_run, explain=explain, retry_failed=retry_failed
-    )
+    ).raw
     pretty_print(response, format=Format.json)
