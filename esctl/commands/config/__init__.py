@@ -7,11 +7,12 @@ from rich.table import Table
 import typer
 from typing_extensions import Annotated
 
+from .add_context import app as add_context_app
 from esctl.completions import complete_context
 from esctl.config import Config
 
 app = typer.Typer()
-
+app.add_typer(add_context_app, name="add-context", help="Add an ElasticSearch server to the esctl configuration file",)
 
 @app.command(
     name="contexts",
@@ -19,10 +20,13 @@ app = typer.Typer()
 )
 def list_contexts(
     ctx: typer.Context,
-    with_password: Annotated[bool, typer.Option(
-        "--with-password",
-        help="Show the password in the output",
-    )] = False,
+    with_password: Annotated[
+        bool,
+        typer.Option(
+            "--with-password",
+            help="Show the password in the output",
+        ),
+    ] = False,
 ):
     config: Config = ctx.obj["config"]
     console = Console()
@@ -30,43 +34,14 @@ def list_contexts(
     for context_name, context in config.contexts.items():
         table.add_row(
             "" if context_name != config.current_context else "→",
-            context_name if context_name != config.current_context else f"[b green]{context_name}[/]",
+            context_name
+            if context_name != config.current_context
+            else f"[b green]{context_name}[/]",
             context.url,
             context.username,
             context.password if with_password else context.censored_password,
         )
     console.print(table)
-
-
-@app.command(help="Add an ElasticSearch server to the esctl configuration file")
-def add_context(
-    ctx: typer.Context,
-    context_name: Annotated[str, typer.Argument(help="Name of the context")],
-    host: Annotated[
-        str, typer.Option("--host", "-h", help="Hostname of the cluster")
-    ] = "localhost",
-    port: Annotated[
-        int, typer.Option("--port", "-p", help="Port the ES master listens on")
-    ] = 9200,
-    username: Annotated[
-        str,
-        typer.Option(
-            "--username",
-            "-u",
-            help="Username of the user to connect as, using basic auth",
-        ),
-    ] = None,
-    password: Annotated[
-        str,
-        typer.Option(
-            "--password",
-            "-p",
-            help="Password of the user to connect as, using basic auth",
-        ),
-    ] = None,
-):
-    ctx.obj["config"].add_context(context_name, host, port, username, password)
-    typer.echo(f"Context {context_name} added")
 
 
 @app.command(help="Remove an ElasticSearch server from the esctl configuration file")

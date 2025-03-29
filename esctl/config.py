@@ -1,59 +1,21 @@
 import os
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 import typer
 from elasticsearch import Elasticsearch
-from elasticsearch.serializer import JsonSerializer, NdjsonSerializer, TextSerializer
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from esctl.serializer import YamlSerializer
+from esctl.models.config.http import HTTPESConfig
+from esctl.models.config.kube import KubeESConfig
 from esctl.utils import get_root_ctx
-
-
-class ESConfig(BaseModel):
-    host: str
-    username: str | None = None
-    password: str | None = None
-    port: int = 9200
-
-    @property
-    def url(self) -> str:
-        return f"http://{self.host}:{self.port}"
-
-    @property
-    def basic_auth(self) -> tuple[str, str] | None:
-        if self.username is None or self.password is None:
-            return None
-        return (self.username, self.password)
-
-    @property
-    def censored_password(self) -> str:
-        return self.password[:4] + "*" * (len(self.password) - 4)
-
-    @property
-    def client(self) -> Elasticsearch:
-        return Elasticsearch(
-            self.url,
-            basic_auth=self.basic_auth,
-            serializers={
-                JsonSerializer.mimetype: JsonSerializer(),
-                TextSerializer.mimetype: TextSerializer(),
-                NdjsonSerializer.mimetype: NdjsonSerializer(),
-                "application/yaml": YamlSerializer(),
-                "application/yml": YamlSerializer(),
-            },
-        )
-
-    @classmethod
-    def from_context_name(cls, context_name: str) -> "ESConfig":
-        conf = read_config()
-        return conf.contexts[context_name]
 
 
 class Config(BaseModel):
     config_path: Path
-    contexts: dict[str, ESConfig]
+    contexts: dict[
+        str, Annotated[HTTPESConfig | KubeESConfig, Field(discriminator="type")]
+    ]
     current_context: str
     aliases: dict[str, Any] = {}
 
@@ -64,17 +26,16 @@ class Config(BaseModel):
     def add_context(
         self,
         context_name: str,
-        host: str,
-        port: int,
-        username: str = None,
-        password: str = None,
+        context_type: str,
+        /,
+        **kwargs,
     ):
-        self.contexts[context_name] = ESConfig(
-            host=host,
-            port=port,
-            username=username,
-            password=password,
-        )
+        if context_name in self.contexts:
+            raise ValueError(f"Context {context_name} already exists")
+        if context_type == "http":
+            self.contexts[context_name] = HTTPESConfig(type="http", **kwargs)
+        elif context_type == "kubernetes":
+            self.contexts[context_name] = KubeESConfig(type="kubernetes", **kwargs)
         save_config(self)
 
     def remove_context(self, context_name: str):
@@ -110,6 +71,7 @@ def save_config(config: Config):
 def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
     root_ctx = get_root_ctx(ctx)
     context_name = root_ctx.params["context"]
+    conf = read_config()
     if context_name is None:
-        context_name = read_config().current_context
-    return ESConfig.from_context_name(context_name).client
+        context_name = conf.current_context
+    return conf.contexts[context_name].client
