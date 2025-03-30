@@ -9,6 +9,7 @@ from esctl.completions import (
     complete_settings_key,
     complete_shard,
     complete_sort,
+    complete_task_id,
 )
 from esctl.models.enums import ByteUnit, Format, TimeUnit
 
@@ -239,5 +240,14 @@ IndexArgument = Annotated[
     typer.Argument(
         autocompletion=complete_index,
         help="The index to use",
+    ),
+]
+
+ParentTaskIdOption = Annotated[
+    str,
+    typer.Option(
+        "--parent-task-id",
+        help="The parent task ID to filter tasks by",
+        autocompletion=complete_task_id,
     ),
 ]

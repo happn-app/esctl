@@ -44,6 +44,16 @@ def KubeNodeClassFactory(
             pf.socket(self.port)
             return pf.socket(self.port)
 
+        def getresponse(self) -> urllib3.HTTPResponse:
+            response = super().getresponse()
+            # Hack around the fact that ES raises an exception if the
+            # X-Elastic-Product header is not set, claiming an "unsupported product"
+            # 100% is to not have AWS' version of ES be compatible with the client
+            # library. Incidentally, this also breaks if trying to query a server
+            # with version 7.10.0 or lower.
+            response.headers["X-Elastic-Product"] = "Elasticsearch"
+            return response
+
     class KubePortForwardConnectionPool(urllib3.connectionpool.HTTPConnectionPool):
         ConnectionCls = KubeHTTPConnection
 
