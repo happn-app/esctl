@@ -12,6 +12,7 @@ from esctl.params import ContextOption, JMESPathOption, JSONPathOption, PrettyOp
 from .commands.cat import app as cat_app
 from .commands.cluster import app as cluster_app
 from .commands.config import app as config_app
+from .commands.tasks import app as task_app
 from .config import read_config
 
 app = typer.Typer()
@@ -25,6 +26,7 @@ app.add_typer(
 )
 app.add_typer(cluster_app, name="cluster", help="Elasticsearch Cluster management APIs")
 app.add_typer(config_app, name="config", help="Manage esctl configuration")
+app.add_typer(task_app, name="task", help="Elasticsearch Task management APIs")
 
 cfg = read_config()
 

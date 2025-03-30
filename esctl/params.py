@@ -6,6 +6,7 @@ from esctl.completions import (
     complete_context,
     complete_index,
     complete_node,
+    complete_parent_task_id,
     complete_settings_key,
     complete_shard,
     complete_sort,
@@ -248,6 +249,14 @@ ParentTaskIdOption = Annotated[
     typer.Option(
         "--parent-task-id",
         help="The parent task ID to filter tasks by",
+        autocompletion=complete_parent_task_id,
+    ),
+]
+
+TaskIdArgument = Annotated[
+    str,
+    typer.Argument(
+        help="The task ID to use",
         autocompletion=complete_task_id,
     ),
 ]

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Added commands
+  - tasks
+    - cancel
+
 ## 0.2.0
 
 - Added `kubernetes` integration into `esctl`

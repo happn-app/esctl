@@ -81,7 +81,7 @@ def complete_settings_key(ctx: typer.Context, incomplete: str) -> Iterable[str]:
             yield key
 
 
-def complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
+def complete_parent_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
     client = get_client_from_ctx(ctx)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -92,5 +92,18 @@ def complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
         for task_id, parent_task_id in tasks_with_parents:
             if parent_task_id != "-":
                 continue
+            if task_id.startswith(incomplete):
+                yield task_id
+
+
+def complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
+    client = get_client_from_ctx(ctx)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        tasks = [
+            tuple(split.strip() for split in line.split())
+            for line in client.cat.tasks(format="text", h="task_id").body.splitlines()
+        ]
+        for task_id, in tasks:
             if task_id.startswith(incomplete):
                 yield task_id
