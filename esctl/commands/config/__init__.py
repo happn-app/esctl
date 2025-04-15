@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 
 from .add_context import app as add_context_app
 from esctl.completions import complete_context
-from esctl.config import Config
+from esctl.config import Config, get_esctl_config_path
 
 app = typer.Typer()
 app.add_typer(add_context_app, name="add-context", help="Add an ElasticSearch server to the esctl configuration file",)
@@ -62,7 +62,7 @@ def edit(ctx: typer.Context):
             default = editor
             break
     editor = os.getenv("EDITOR", default)
-    subprocess.run([editor, str(ctx.obj["config"].config_path)])
+    subprocess.run([editor, str(get_esctl_config_path())])
 
 
 # TODO: find a way to add aliases to commands without having to edit the config file

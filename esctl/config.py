@@ -1,10 +1,13 @@
+import errno
 import os
 from pathlib import Path
+import sys
 from typing import Annotated, Any
 
-import typer
 from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
+from rich import print
+import typer
 
 from esctl.models.config.http import HTTPESConfig
 from esctl.models.config.kube import KubeESConfig
@@ -75,4 +78,7 @@ def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
     conf = read_config()
     if context_name is None:
         context_name = conf.current_context
+    if context_name not in conf.contexts:
+        print(f"[red bold]ERROR:[/] Context not found: {context_name}", file=sys.stderr)
+        sys.exit(errno.ENOEXEC)
     return conf.contexts[context_name].client
