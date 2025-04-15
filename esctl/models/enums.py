@@ -50,3 +50,8 @@ class SizeUnit(str, Enum):
     g = "g"
     t = "t"
     p = "p"
+
+
+class Conflict(str, Enum):
+    abort = "abort"
+    proceed = "proceed"

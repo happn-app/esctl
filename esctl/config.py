@@ -65,7 +65,8 @@ def read_config() -> Config:
 
 
 def save_config(config: Config):
-    config.config_path.write_text(config.model_dump_json(indent=2))
+    config_path = get_esctl_config_path()
+    config_path.write_text(config.model_dump_json(indent=2))
 
 
 def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
