@@ -24,27 +24,43 @@ def settings(
     settings_value: SettingsValueArgument = None,
     transient: SettingsTransientOption = False,
     format: FormatOption = Format.text,
+    with_defaults: bool = True,
+    filter: str = None,
 ):
     client = get_client_from_ctx(ctx)
     if settings_key is None and settings_value is None:
         # Get the current settings, without the defaults
         response = client.cluster.get_settings(
-            include_defaults=True, flat_settings=True
+            include_defaults=with_defaults, flat_settings=True
         ).body
-        all_settings: dict = deepcopy(response["defaults"])
+        all_settings: dict = deepcopy(response.get("defaults", {}))
         all_settings.update(response["persistent"])
         all_settings.update(response["transient"])
+        # Filter the settings if needed
+        if filter:
+            all_settings = {
+                k: v
+                for k, v in all_settings.items()
+                if filter in k
+            }
         data = "key value\n" + "\n".join([f"{k} {v}" for k, v in all_settings.items()])
         pretty_print(data, format=Format.text)
         return
 
     if settings_key is not None and settings_value is None:
         response = client.cluster.get_settings(
-            flat_settings=True, include_defaults=True
+            flat_settings=True, include_defaults=with_defaults,
         ).body
-        all_settings: dict = deepcopy(response["default"])
+        all_settings: dict = deepcopy(response.get("defaults", {}))
         all_settings.update(response["persistent"])
         all_settings.update(response["transient"])
+        # Filter the settings if needed
+        if filter:
+            all_settings = {
+                k: v
+                for k, v in all_settings.items()
+                if filter in k
+            }
         print(f"[blue b]{settings_key}[/]: ", all_settings[settings_key])
 
     if settings_key is None and settings_value is not None:

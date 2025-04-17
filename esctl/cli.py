@@ -1,10 +1,12 @@
 import importlib
 import logging
+from typing import Annotated
 
 import typer
 from jmespath import compile as compile_jmespath
 from jsonpath_ng import parse as parse_jsonpath
 from rich.logging import RichHandler
+from rich import print
 from yamlpath import YAMLPath
 
 from esctl.params import ContextOption, JMESPathOption, JSONPathOption, PrettyOption, VerboseOption, YAMLPathOption
@@ -56,7 +58,19 @@ def callback(
     jmespath: JMESPathOption = None,
     yamlpath: YAMLPathOption = None,
     pretty: PrettyOption = True,
+    version: Annotated[bool, typer.Option("--version", is_flag=True)] = False,
 ):
+    if version:
+        from esctl import __version__ as esctl_version
+        from elasticsearch._version import __versionstr__ as es_version
+        from kubernetes import __version__ as k8s_version
+        import sys
+
+        print(f"esctl version         : [blue]{esctl_version}[/]")
+        print(f"Elasticsearch version : [blue]{es_version}[/]")
+        print(f"Kubernetes version    : [blue]{k8s_version}[/]")
+        print(f"Python version        : [blue]{sys.version}[/]")
+        raise typer.Exit()
     # Make jsonpath, jmespath and yamlpath mutually exclusive
     if len([arg for arg in (jsonpath, jmespath, yamlpath) if arg]) > 1:
         raise typer.BadParameter(
