@@ -3,7 +3,7 @@ import typer
 from esctl.config import get_client_from_ctx
 from esctl.models.enums import Conflict, Format
 from esctl.output import pretty_print
-from esctl.params import IndexArgument
+from esctl.params import IndexArgument, SliceOption
 from esctl.selectors import select_from_context
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -18,7 +18,7 @@ def reindex(
     dest: IndexArgument,
     wait_for_completion: bool = False,
     refresh: bool = False,
-    slices: int | None = None,
+    slices: SliceOption = None,
     require_alias: bool = False,
     conflicts: Conflict = Conflict.abort,
 ):

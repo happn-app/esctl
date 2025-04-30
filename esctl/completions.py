@@ -87,7 +87,9 @@ def complete_parent_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str
         warnings.simplefilter("ignore")
         tasks_with_parents = [
             tuple(split.strip() for split in line.split())
-            for line in client.cat.tasks(format="text", h="task_id,parent_task_id").body.splitlines()
+            for line in client.cat.tasks(
+                format="text", h="task_id,parent_task_id"
+            ).body.splitlines()
         ]
         for task_id, parent_task_id in tasks_with_parents:
             if parent_task_id != "-":
@@ -104,6 +106,56 @@ def complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
             tuple(split.strip() for split in line.split())
             for line in client.cat.tasks(format="text", h="task_id").body.splitlines()
         ]
-        for task_id, in tasks:
+        for (task_id,) in tasks:
             if task_id.startswith(incomplete):
                 yield task_id
+
+
+def complete_repository(ctx: typer.Context, incomplete: str) -> Iterable[str]:
+    client = get_client_from_ctx(ctx)
+    repositories = [
+        repo["name"] for repo in client.snapshot.get_repository(format="json").body
+    ]
+    for repository in repositories:
+        if repository.startswith(incomplete):
+            yield repository
+
+
+def complete_snapshot_name(ctx: typer.Context, incomplete: str) -> Iterable[str]:
+    client = get_client_from_ctx(ctx)
+    repository = ctx.params.get("repository")
+    if not repository:
+        return
+    snapshots = [
+        snapshot["snapshot"]
+        for snapshot in client.snapshot.get(
+            repository=repository, snapshot="*", format="json"
+        ).raw["snapshots"]
+    ]
+    for snapshot in snapshots:
+        if snapshot.startswith(incomplete):
+            yield snapshot
+
+
+def complete_snapshot_indices(ctx: typer.Context, incomplete: str) -> Iterable[str]:
+    client = get_client_from_ctx(ctx)
+    repository = ctx.params.get("repository")
+    if not repository:
+        return
+    snapshot = ctx.params.get("snapshot")
+    if not snapshot:
+        snapshots = client.snapshot.get(
+            repository=repository, snapshot="*", format="json"
+        ).body["snapshots"]
+        snapshot = snapshots[-1]["snapshot"] if snapshots else None
+    if not snapshot:
+        return
+
+    indices = client.snapshot.get(
+        repository=repository,
+        snapshot=snapshot,
+        format="json",
+    ).body["snapshots"][0]["indices"]
+    for index in indices:
+        if index.startswith(incomplete):
+            yield index

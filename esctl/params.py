@@ -1,3 +1,4 @@
+from typing import Optional
 import typer
 from typing_extensions import Annotated
 
@@ -9,8 +10,11 @@ from esctl.completions import (
     complete_parent_task_id,
     complete_settings_key,
     complete_shard,
+    complete_snapshot_indices,
     complete_sort,
     complete_task_id,
+    complete_repository,
+    complete_snapshot_name,
 )
 from esctl.models.enums import ByteUnit, Format, TimeUnit
 
@@ -258,5 +262,41 @@ TaskIdArgument = Annotated[
     typer.Argument(
         help="The task ID to use",
         autocompletion=complete_task_id,
+    ),
+]
+
+SliceOption = Annotated[
+    int,
+    typer.Option(
+        "--slices",
+        "-s",
+        help="The number of slices to use for the reindexing operation. Defaults to 'auto'.",
+    ),
+]
+
+RestoreSnapshotRepositoryArgument = Annotated[
+    str,
+    typer.Argument(
+        help="The name of the repository to restore the snapshot from",
+        autocompletion=complete_repository,
+    ),
+]
+
+
+RestoreSnapshotNameArgument = Annotated[
+    str | None,
+    typer.Argument(
+        help="The name of the snapshot to restore",
+        autocompletion=complete_snapshot_name,
+    ),
+]
+
+RestoreSnapshotIndexOption = Annotated[
+    Optional[list[str]],
+    typer.Option(
+        "--index",
+        "-i",
+        help="The index to restore from the snapshot",
+        autocompletion=complete_snapshot_indices,
     ),
 ]
