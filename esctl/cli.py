@@ -15,12 +15,16 @@ from .commands.cat import app as cat_app
 from .commands.cluster import app as cluster_app
 from .commands.config import app as config_app
 from .commands.tasks import app as task_app
+from .commands.index import app as index_app
 from .config import read_config
 
 app = typer.Typer()
-cat_app.root = app
-cluster_app.root = app
-config_app.root = app
+setattr(cat_app, "root", app)
+setattr(cluster_app, "root", app)
+setattr(config_app, "root", app)
+setattr(task_app, "root", app)
+setattr(index_app, "root", app)
+
 app.add_typer(
     cat_app,
     name="cat",
@@ -29,6 +33,7 @@ app.add_typer(
 app.add_typer(cluster_app, name="cluster", help="Elasticsearch Cluster management APIs")
 app.add_typer(config_app, name="config", help="Manage esctl configuration")
 app.add_typer(task_app, name="task", help="Elasticsearch Task management APIs")
+app.add_typer(index_app, name="index", help="Elasticsearch Index management APIs")
 
 cfg = read_config()
 
@@ -38,7 +43,7 @@ def alias_factory(command: str, args: list[str]):
         module = importlib.import_module(f".{command}", package="esctl.commands")
         cmd_name = command.split(".")[-1]
         cmd = getattr(module, cmd_name)
-        ctx.invoke(cmd, ctx, **args)
+        ctx.invoke(cmd, ctx, **args)  # type: ignore
 
     return callback
 
@@ -52,11 +57,11 @@ for alias_name, alias in cfg.aliases.items():
 @app.callback(invoke_without_command=True)
 def callback(
     ctx: typer.Context,
-    context: ContextOption = None,
+    context: ContextOption | None = None,
     verbose: VerboseOption = 0,
-    jsonpath: JSONPathOption = None,
-    jmespath: JMESPathOption = None,
-    yamlpath: YAMLPathOption = None,
+    jsonpath: JSONPathOption | None = None,
+    jmespath: JMESPathOption | None = None,
+    yamlpath: YAMLPathOption | None = None,
     pretty: PrettyOption = True,
     version: Annotated[bool, typer.Option("--version", is_flag=True)] = False,
 ):

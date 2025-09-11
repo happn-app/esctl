@@ -14,20 +14,22 @@ from esctl.models.enums import Format
 RM_WHITESPACE = re.compile(r"\s+")
 
 
-def parse_row(row: str, maxsplit=-1) -> list[str]:
+def parse_row(row: str, maxsplit: int = -1) -> list[str]:
     row = RM_WHITESPACE.sub(" ", row)
     return [column.strip() for column in row.split(" ", maxsplit) if column]
 
 
+def default_formatter(header: list[str], row: list[str]) -> list[str]:
+    return row
+
+
 def pretty_print(
-    response: Any, format: Format, formatter: Callable[[list[str]], list[str]] = None
+    response: Any, format: Format,
+    formatter: Callable[[list[str], list[str]], list[str]] | None = None,
 ) -> None:
     console = Console()
     if formatter is None:
-
-        def formatter(_: list[str], row: list[str]) -> list[str]:
-            return row
-
+        formatter = default_formatter
     if format == Format.text:
         # Table
         rows: list[str] = response.splitlines()
