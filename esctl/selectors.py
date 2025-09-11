@@ -14,7 +14,7 @@ def select_from_context(ctx: typer.Context, value: Any) -> Any:
         contexts.append(contexts[-1].parent)
     root_ctx = contexts[-2]
     if root_ctx.obj["jmespath"] is not None:
-        return root_ctx.obj["jsonpath"].search(value.body)
+        return root_ctx.obj["jmespath"].search(value.body)
     if root_ctx.obj["jsonpath"] is not None:
         value = root_ctx.obj["jsonpath"].find(value.body)
         if isinstance(value, Iterable):
