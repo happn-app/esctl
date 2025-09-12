@@ -7,6 +7,7 @@ from .nodes import app as nodes_app
 from .recovery import app as recovery_app
 from .shards import app as shards_app
 from .tasks import app as tasks_app
+from .templates import app as templates_app
 
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -17,3 +18,4 @@ app.add_typer(indices_app)
 app.add_typer(recovery_app)
 app.add_typer(shards_app)
 app.add_typer(tasks_app)
+app.add_typer(templates_app)

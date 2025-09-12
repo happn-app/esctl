@@ -8,7 +8,6 @@ import typer
 import typer.completion
 from typing_extensions import Annotated
 
-from esctl.models.config.http import HTTPESConfig
 from esctl.models.enums import Shell
 
 from .add_context import app as add_context_app
@@ -37,7 +36,7 @@ def list_contexts(
     http_contexts = {
         name: context
         for name, context in config.contexts.items()
-        if isinstance(context, HTTPESConfig)
+        if context.type == "http"
     }
     if http_contexts:
         table = Table("", "Name", "URL", "Username", "Password", title="Available Contexts")
@@ -55,7 +54,7 @@ def list_contexts(
     kube_contexts = {
         name: context
         for name, context in config.contexts.items()
-        if not isinstance(context, HTTPESConfig)
+        if context.type == "kubernetes"
     }
     if kube_contexts:
         table = Table("", "Name", "Kube Context", "Kube Namespace", "ES Name", title="Available Kube Contexts")

@@ -18,6 +18,7 @@ from .commands.tasks import app as task_app
 from .commands.index import app as index_app
 from .commands.reindex import app as reindex_app
 from .commands.troubleshoot import app as troubleshoot_app
+from .commands.snapshot import app as snapshot_app
 from .config import read_config
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -26,6 +27,9 @@ setattr(cluster_app, "root", app)
 setattr(config_app, "root", app)
 setattr(task_app, "root", app)
 setattr(index_app, "root", app)
+setattr(reindex_app, "root", app)
+setattr(troubleshoot_app, "root", app)
+setattr(snapshot_app, "root", app)
 
 app.add_typer(
     cat_app,
@@ -38,6 +42,7 @@ app.add_typer(task_app, name="task", help="Elasticsearch Task management APIs")
 app.add_typer(index_app, name="index", help="Elasticsearch Index management APIs")
 app.add_typer(reindex_app, name="reindex", help="Reindex from one index to another")
 app.add_typer(troubleshoot_app, name="troubleshoot", help="Troubleshoot Elasticsearch cluster issues")
+app.add_typer(snapshot_app, name="snapshot", help="Elasticsearch Snapshot and Restore APIs")
 
 cfg = read_config()
 
