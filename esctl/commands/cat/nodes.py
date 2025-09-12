@@ -21,10 +21,10 @@ app = typer.Typer()
 @app.command(help="Returns information about a cluster’s nodes.")
 def nodes(
     ctx: typer.Context,
-    header: HeaderOption = None,
-    sort: SortOption = None,
-    time: TimeOption = None,
-    bytes: BytesOption = None,
+    header: HeaderOption | None = None,
+    sort: SortOption | None = None,
+    time: TimeOption | None = None,
+    bytes: BytesOption | None = None,
     full_id: FullIdOption = True,
     include_unloaded_segments: IncludeUnloadedSegmentsOption = False,
     format: FormatOption = Format.text,

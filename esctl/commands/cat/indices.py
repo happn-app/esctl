@@ -38,11 +38,11 @@ def formatter(header: list[str], row: list[str]) -> list[str]:
 )
 def indices(
     ctx: typer.Context,
-    index: IndexArgument = None,
-    header: HeaderOption = None,
-    sort: SortOption = None,
-    time: TimeOption = None,
-    bytes: BytesOption = None,
+    index: IndexArgument | None = None,
+    header: HeaderOption | None = None,
+    sort: SortOption | None = None,
+    time: TimeOption | None = None,
+    bytes: BytesOption | None = None,
     format: FormatOption = Format.text,
 ):
     client: Elasticsearch = get_client_from_ctx(ctx)

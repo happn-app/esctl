@@ -37,9 +37,9 @@ def formatter(header: list[str], row: list[str]) -> list[str]:
 )
 def allocation(
     ctx: typer.Context,
-    header: HeaderOption = None,
-    sort: SortOption = None,
-    bytes: BytesOption = None,
+    header: HeaderOption | None = None,
+    sort: SortOption | None = None,
+    bytes: BytesOption | None = None,
     format: FormatOption = Format.text,
     local_only: LocalOnlyOption = False,
 ):

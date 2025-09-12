@@ -31,12 +31,12 @@ app = typer.Typer()
 )
 def recovery(
     ctx: typer.Context,
-    header: HeaderOption = None,
-    sort: SortOption = None,
-    time: TimeOption = None,
-    bytes: BytesOption = None,
-    detailed: DetailedOption = False,
-    index: IndexOption = None,
+    header: HeaderOption | None = None,
+    sort: SortOption | None = None,
+    time: TimeOption | None = None,
+    bytes: BytesOption | None = None,
+    detailed: DetailedOption | None = False,
+    index: IndexOption | None = None,
     active_only: ActiveOnlyOption = False,
     format: FormatOption = Format.text,
 ):

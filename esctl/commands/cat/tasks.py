@@ -45,12 +45,12 @@ def formatter(header: list[str], row: list[str]) -> list[str]:
 def tasks(
     ctx: typer.Context,
     detailed: bool = False,
-    header: HeaderOption = None,
-    sort: SortOption = None,
+    header: HeaderOption | None = None,
+    sort: SortOption | None = None,
     format: FormatOption = Format.text,
-    nodes: NodeOption = None,
-    time: TimeOption = None,
-    parent_task_id: ParentTaskIdOption = None,
+    nodes: NodeOption | None = None,
+    time: TimeOption | None = None,
+    parent_task_id: ParentTaskIdOption | None = None,
 ):
     params = get_cat_base_params_from_context(ctx, format)
     params.update(

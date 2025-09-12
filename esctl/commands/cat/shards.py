@@ -45,11 +45,11 @@ def formatter(header: list[str], row: list[str]) -> list[str]:
 )
 def shards(
     ctx: typer.Context,
-    index: IndexOption = None,
-    header: HeaderOption = None,
-    sort: SortOption = None,
-    time: TimeOption = None,
-    bytes: BytesOption = None,
+    index: IndexOption | None = None,
+    header: HeaderOption | None = None,
+    sort: SortOption | None = None,
+    time: TimeOption | None = None,
+    bytes: BytesOption | None = None,
     format: FormatOption = Format.text,
 ):
     params = get_cat_base_params_from_context(ctx, format)

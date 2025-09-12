@@ -59,9 +59,9 @@ def formatter(header: list[str], row: list[str]) -> list[str]:
 )
 def health(
     ctx: typer.Context,
-    header: HeaderOption = None,
-    sort: SortOption = None,
-    time: TimeOption = None,
+    header: HeaderOption | None = None,
+    sort: SortOption | None = None,
+    time: TimeOption | None = None,
     ts: TimestampOption = False,
     format: FormatOption = Format.text,
 ):
