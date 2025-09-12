@@ -55,3 +55,10 @@ class SizeUnit(str, Enum):
 class Conflict(str, Enum):
     abort = "abort"
     proceed = "proceed"
+
+
+class Shell(str, Enum):
+    bash = "bash"
+    zsh = "zsh"
+    fish = "fish"
+    powershell = "powershell"

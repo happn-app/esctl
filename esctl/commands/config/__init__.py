@@ -5,9 +5,11 @@ import subprocess
 from rich.console import Console
 from rich.table import Table
 import typer
+import typer.completion
 from typing_extensions import Annotated
 
 from esctl.models.config.http import HTTPESConfig
+from esctl.models.enums import Shell
 
 from .add_context import app as add_context_app
 from esctl.completions import complete_context
@@ -127,3 +129,19 @@ def edit(ctx: typer.Context):
 #     #     arguments[argument_name] = argument
 #     # config.add_alias(alias_name, command, arguments)
 #     # typer.echo(f"Alias {alias_name} added")
+
+@app.command(help="Show completion for a specific shell")
+def completion(
+    ctx: typer.Context,
+    shell: Annotated[
+        Shell,
+        typer.Argument(
+            help="Shell type",
+        ),
+    ]
+):
+    # Typer internal callback to show the completion script
+    # This is not documented but works, the second parameter is not used but is
+    # typed as a click.Parameter, instead of instanciating one, we pass None
+    # It breaks the typing but works perfectly fine in this instance, hence the 'type: ignore'
+    typer.completion.show_callback(ctx, None, shell) # type: ignore
