@@ -32,12 +32,23 @@ def pretty_print(
         formatter = default_formatter
     if format == Format.text:
         # Table
-        rows: list[str] = response.splitlines()
-        header = parse_row(rows.pop(0))
-        table = Table(*header)
-        for row in rows:
-            table.add_row(*formatter(header, parse_row(row, len(header) - 1)))
-        console.print(table)
+        if isinstance(response, str):
+            rows: list[str] = response.splitlines()
+            header = parse_row(rows.pop(0))
+            table = Table(*header)
+            for row in rows:
+                table.add_row(*formatter(header, parse_row(row, len(header) - 1)))
+            console.print(table)
+        elif isinstance(response, (list, tuple)) and all(
+            isinstance(item, dict) for item in response
+        ) and len(response) > 0:
+            header = list(response[0].keys()) if response else []
+            table = Table(*header)
+            for item in response:
+                table.add_row(
+                    *formatter(header, [str(item.get(col, "")) for col in header])
+                )
+            console.print(table)
     elif format == Format.json:
         console.print(Syntax(json.dumps(response, indent=2), "json", line_numbers=True))
     elif format == Format.yaml and not isinstance(

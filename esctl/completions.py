@@ -7,7 +7,9 @@ import typer
 from esctl.config import get_client_from_ctx, read_config
 
 
-def complete_column(ctx: typer.Context, incomplete: str) -> Iterable[str | tuple[str, str]]:
+def complete_column(
+    ctx: typer.Context, incomplete: str
+) -> Iterable[str | tuple[str, str]]:
     client = get_client_from_ctx(ctx)
     command_name: str = ctx.command.name or ""
     response: str = getattr(client.cat, command_name)(help=True).body
@@ -26,7 +28,9 @@ def complete_column(ctx: typer.Context, incomplete: str) -> Iterable[str | tuple
             yield (column["name"], column["description"])
 
 
-def complete_sort(ctx: typer.Context, incomplete: str) -> Iterable[str | tuple[str, str]]:
+def complete_sort(
+    ctx: typer.Context, incomplete: str
+) -> Iterable[str | tuple[str, str]]:
     columns = list(complete_column(ctx, incomplete.split(":")[0]))
     orders = ["asc", "desc"]
     return [
@@ -46,7 +50,7 @@ def complete_index(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 def complete_node(ctx: typer.Context, incomplete: str) -> Iterable[str]:
     client = get_client_from_ctx(ctx)
-    nodes = [n["name"] for n in client.cat.nodes(format="json", h=["name"]).body] # type: ignore
+    nodes = [n["name"] for n in client.cat.nodes(format="json", h=["name"]).body]  # type: ignore
     for node in nodes:
         if node.startswith(incomplete):
             yield node
@@ -114,7 +118,7 @@ def complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 def complete_repository(ctx: typer.Context, incomplete: str) -> Iterable[str]:
     client = get_client_from_ctx(ctx)
     repositories = [
-        repo["name"] for repo in client.snapshot.get_repository(format="json").body
+        repo["name"] for repo in client.snapshot.get_repository().body
     ]
     for repository in repositories:
         if repository.startswith(incomplete):
@@ -129,7 +133,8 @@ def complete_snapshot_name(ctx: typer.Context, incomplete: str) -> Iterable[str]
     snapshots = [
         snapshot["snapshot"]
         for snapshot in client.snapshot.get(
-            repository=repository, snapshot="*", format="json"
+            repository=repository,
+            snapshot="*",
         ).raw["snapshots"]
     ]
     for snapshot in snapshots:
@@ -145,7 +150,8 @@ def complete_snapshot_indices(ctx: typer.Context, incomplete: str) -> Iterable[s
     snapshot = ctx.params.get("snapshot")
     if not snapshot:
         snapshots = client.snapshot.get(
-            repository=repository, snapshot="*", format="json"
+            repository=repository,
+            snapshot="*",
         ).body["snapshots"]
         snapshot = snapshots[-1]["snapshot"] if snapshots else None
     if not snapshot:
@@ -154,7 +160,6 @@ def complete_snapshot_indices(ctx: typer.Context, incomplete: str) -> Iterable[s
     indices = client.snapshot.get(
         repository=repository,
         snapshot=snapshot,
-        format="json",
     ).body["snapshots"][0]["indices"]
     for index in indices:
         if index.startswith(incomplete):

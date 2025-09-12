@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0
+
+- Added commands
+  - snapshot list
+  - snapshot restore
+  - cat templates
+- Fixed list contexts
+
 ## 1.5.0
 
 - Added commands

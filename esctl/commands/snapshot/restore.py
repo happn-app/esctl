@@ -1,10 +1,25 @@
+from typing import Annotated
 import typer
 
 from esctl.config import get_client_from_ctx
+from esctl.models.enums import Format
+from esctl.output import pretty_print
 from esctl.params import IndexOption
+from esctl.selectors import select_from_context
 
 app = typer.Typer()
 
+
+def snapshot_callback(ctx: typer.Context, value: str) -> str:
+    if value != "latest":
+        return value
+    client = get_client_from_ctx(ctx)
+    repository: str = ctx.params["repository"]
+    snapshots = client.snapshot.get(repository=repository, snapshot="*").body["snapshots"]
+    snapshot = snapshots[-1]["snapshot"] if snapshots else None  # type: ignore
+    if snapshot is None:
+        raise typer.BadParameter(f"No snapshots found in repository {repository}")
+    return snapshot
 
 @app.command(
     help="Restore a snapshot from a repository.",
@@ -12,8 +27,8 @@ app = typer.Typer()
 def restore(
     ctx: typer.Context,
     repository: str,
-    snapshot: str,
-    index: IndexOption = None,
+    snapshot: Annotated[str, typer.Argument(callback=snapshot_callback)] = "latest",
+    index: IndexOption | None = None,
 ):
     """
     Restore a snapshot from a repository.
@@ -21,14 +36,8 @@ def restore(
     client = get_client_from_ctx(ctx)
     if not repository:
         return
-    snapshot = ctx.params.get("snapshot")
-    if not snapshot:
-        snapshots = client.snapshot.get(repository=repository, snapshot="*", format="json").body["snapshots"]
-        snapshot = snapshots[-1]["snapshot"] if snapshots else None
-    if not snapshot:
-        return
 
-    index = client.snapshot.get(repository=repository, snapshot=snapshot, format="json").body["snapshots"][0]["indices"]
+    index = client.snapshot.get(repository=repository, snapshot=snapshot).body["snapshots"][0]["indices"]
     response = client.snapshot.restore(
         repository=repository,
         snapshot=snapshot,

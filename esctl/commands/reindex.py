@@ -18,7 +18,7 @@ def reindex(
     dest: IndexArgument,
     wait_for_completion: bool = False,
     refresh: bool = False,
-    slices: SliceOption = None,
+    slices: SliceOption | None = None,
     require_alias: bool = False,
     conflicts: Conflict = Conflict.abort,
 ):
