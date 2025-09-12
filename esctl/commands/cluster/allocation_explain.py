@@ -12,7 +12,7 @@ from esctl.params import (
     ShardOption,
 )
 
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 
 
 @app.command(help="Provides an explanation for a shard’s current allocation.")

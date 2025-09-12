@@ -1,5 +1,4 @@
 from copy import deepcopy
-from typing import TypedDict
 
 import typer
 from rich import print
@@ -15,26 +14,21 @@ from esctl.params import (
     SettingsValueArgument,
 )
 
-app = typer.Typer()
-
-
-class SettingsPutParams(TypedDict):
-    persistent: dict[str, str] | None
-    transient: dict[str, str] | None
+app = typer.Typer(rich_markup_mode="rich")
 
 
 @app.command()
 def settings(
     ctx: typer.Context,
-    settings_key: SettingsKeyArgument | None = None,
-    settings_value: SettingsValueArgument | None = None,
+    settings_key: SettingsKeyArgument = "",
+    settings_value: SettingsValueArgument = "",
     transient: SettingsTransientOption = False,
     format: FormatOption = Format.text,
     with_defaults: bool = True,
     filter: str | None = None,
 ):
     client = get_client_from_ctx(ctx)
-    if settings_key is None and settings_value is None:
+    if not settings_key and not settings_value:
         # Get the current settings, without the defaults
         response = client.cluster.get_settings(
             include_defaults=with_defaults, flat_settings=True
@@ -53,7 +47,7 @@ def settings(
         pretty_print(data, format=Format.text)
         return
 
-    if settings_key is not None and settings_value is None:
+    if settings_key and not settings_value:
         response = client.cluster.get_settings(
             flat_settings=True, include_defaults=with_defaults,
         ).body
@@ -68,11 +62,16 @@ def settings(
                 if filter in k
             }
         print(f"[blue b]{settings_key}[/]: ", all_settings[settings_key])
-
-    if settings_key is None and settings_value is not None:
-        # How did you get here ???
-        raise typer.BadParameter("You must provide a settings key")
-
+    settings_value, type_ = settings_value.split(":", 1) if ":" in settings_value else (settings_value, "str") # type: ignore
+    cast = {
+        "str": str,
+        "int": int,
+        "float": float,
+        "bool": lambda v: v.lower() in ("true", "1", "yes", "on"),
+        "null": lambda v: None,
+    }.get(type_, str)
+    params = {settings_key: cast(settings_value)} # type: ignore
+    print(params)
     confirm = Confirm.ask(
         "You are about to change the cluster configuration, are you sure ?",
         default=False,
@@ -80,7 +79,8 @@ def settings(
     if not confirm:
         typer.echo("Operation aborted.")
         raise typer.Abort()
-    param_key = "transient" if transient else "persistent"
-    params: SettingsPutParams = {param_key: {settings_key: settings_value}} # type: ignore
-    response = client.cluster.put_settings(**params)
+    if transient:
+        response = client.cluster.put_settings(transient=params) # type: ignore
+    else:
+        response = client.cluster.put_settings(persistent=params) # type: ignore
     pretty_print(response, format=Format.json)

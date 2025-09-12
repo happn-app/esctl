@@ -10,7 +10,7 @@ from esctl.params import (
     RerouteRetryFailedOption,
 )
 
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 
 
 @app.command()

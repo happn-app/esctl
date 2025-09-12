@@ -15,7 +15,7 @@ from .add_context import app as add_context_app
 from esctl.completions import complete_context
 from esctl.config import Config, get_esctl_config_path
 
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 app.add_typer(add_context_app, name="add-context", help="Add an ElasticSearch server to the esctl configuration file",)
 
 @app.command(

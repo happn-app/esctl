@@ -8,7 +8,7 @@ from .recovery import app as recovery_app
 from .shards import app as shards_app
 from .tasks import app as tasks_app
 
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 
 app.add_typer(allocation_app)
 app.add_typer(health_app)

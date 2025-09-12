@@ -17,7 +17,7 @@ from esctl.params import (
 from esctl.selectors import select_from_context
 from esctl.utils import get_cat_base_params_from_context
 
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 
 
 def formatter(header: list[str], row: list[str]) -> list[str]:
@@ -38,7 +38,7 @@ def formatter(header: list[str], row: list[str]) -> list[str]:
 )
 def indices(
     ctx: typer.Context,
-    index: IndexArgument | None = None,
+    index: IndexArgument = '*',
     header: HeaderOption | None = None,
     sort: SortOption | None = None,
     time: TimeOption | None = None,

@@ -1,4 +1,3 @@
-from typing import Literal
 import typer
 
 from esctl.config import get_client_from_ctx
@@ -7,10 +6,11 @@ from esctl.output import pretty_print
 from esctl.params import IndexArgument
 from esctl.selectors import select_from_context
 
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 
-@app.command(
+@app.callback(
     help="Reindex a set of documents from one index to another.",
+    invoke_without_command=True,
 )
 def reindex(
     ctx: typer.Context,
@@ -18,7 +18,7 @@ def reindex(
     dest: IndexArgument,
     wait_for_completion: bool = False,
     refresh: bool = False,
-    slices: int | Literal["auto"] | None = None,
+    slices: int | None = None,
     require_alias: bool = False,
     conflicts: Conflict = Conflict.abort,
 ):
@@ -29,7 +29,7 @@ def reindex(
         "index": dest,
     }
     if slices is None:
-        slices = "auto"
+        slices = "auto"  # type: ignore
     client = get_client_from_ctx(ctx)
     response = client.reindex(
         dest=dest_dict,

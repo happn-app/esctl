@@ -9,7 +9,7 @@ from esctl.params import (
 )
 from esctl.selectors import select_from_context
 
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 
 
 @app.command(

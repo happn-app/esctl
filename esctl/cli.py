@@ -16,9 +16,11 @@ from .commands.cluster import app as cluster_app
 from .commands.config import app as config_app
 from .commands.tasks import app as task_app
 from .commands.index import app as index_app
+from .commands.reindex import app as reindex_app
+from .commands.troubleshoot import app as troubleshoot_app
 from .config import read_config
 
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 setattr(cat_app, "root", app)
 setattr(cluster_app, "root", app)
 setattr(config_app, "root", app)
@@ -34,6 +36,8 @@ app.add_typer(cluster_app, name="cluster", help="Elasticsearch Cluster managemen
 app.add_typer(config_app, name="config", help="Manage esctl configuration")
 app.add_typer(task_app, name="task", help="Elasticsearch Task management APIs")
 app.add_typer(index_app, name="index", help="Elasticsearch Index management APIs")
+app.add_typer(reindex_app, name="reindex", help="Reindex from one index to another")
+app.add_typer(troubleshoot_app, name="troubleshoot", help="Troubleshoot Elasticsearch cluster issues")
 
 cfg = read_config()
 

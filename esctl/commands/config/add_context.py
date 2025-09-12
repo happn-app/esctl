@@ -3,7 +3,7 @@ import typer
 
 from esctl.config import read_config
 
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 
 @app.command(help="Add an HTTP context")
 def http(
