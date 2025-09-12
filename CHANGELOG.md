@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0
+
+- Added commands
+  - index cache delete
+  - index settings
+  - index create
+  - troubleshoot
+  - reindex
+
 ## 0.2.1
 
 - Added commands
