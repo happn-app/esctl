@@ -21,7 +21,7 @@ def http(
             "-u",
             help="Username of the user to connect as, using basic auth",
         ),
-    ] = None,
+    ] | None = None,
     password: Annotated[
         str,
         typer.Option(
@@ -29,7 +29,7 @@ def http(
             "-p",
             help="Password of the user to connect as, using basic auth",
         ),
-    ] = None,
+    ] | None = None,
 ):
     config = read_config()
     config.add_context(
@@ -61,7 +61,7 @@ def kubernetes(
             "-c",
             help="Context, in the kubeconfig file for the kubernetes cluster",
         ),
-    ] = None,
+    ] | None = None,
     es_name: Annotated[
         str,
         typer.Option(
@@ -69,7 +69,7 @@ def kubernetes(
             "-e",
             help="Name of the Elasticsearch cluster in Kubernetes",
         ),
-    ] = None,
+    ] | None = None,
 ):
     config = read_config()
     config.add_context(

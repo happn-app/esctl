@@ -18,10 +18,10 @@ app = typer.Typer()
 def cancel(
     ctx: typer.Context,
     task_id: TaskIdArgument,
-    parent_task_id: ParentTaskIdOption = None,
+    parent_task_id: ParentTaskIdOption | None = None,
     wait_for_completion: bool = False,
-    actions: list[str] = None,
-    nodes: NodeOption = None,
+    actions: list[str] | None = None,
+    nodes: NodeOption | None = None,
 ):
     params = {
         "task_id": task_id,

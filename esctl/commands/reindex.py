@@ -1,3 +1,4 @@
+from typing import Literal
 import typer
 
 from esctl.config import get_client_from_ctx
@@ -17,7 +18,7 @@ def reindex(
     dest: IndexArgument,
     wait_for_completion: bool = False,
     refresh: bool = False,
-    slices: int | None = None,
+    slices: int | Literal["auto"] | None = None,
     require_alias: bool = False,
     conflicts: Conflict = Conflict.abort,
 ):

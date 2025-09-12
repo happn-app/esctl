@@ -8,10 +8,11 @@ from esctl.models.enums import Format
 def get_root_ctx(ctx: typer.Context) -> typer.Context:
     contexts = [ctx]
     while contexts[-1].parent is not None:  # Find the root context
-        contexts.append(contexts[-1].parent)
+        contexts.append(contexts[-1].parent)  # type: ignore
     for c in contexts:
         if "context" in c.params:
             return c
+    raise ValueError("No root context found")
 
 
 def get_cat_base_params_from_context(

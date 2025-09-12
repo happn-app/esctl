@@ -7,9 +7,9 @@ import typer
 from esctl.config import get_client_from_ctx, read_config
 
 
-def complete_column(ctx: typer.Context, incomplete: str) -> Iterable[str]:
+def complete_column(ctx: typer.Context, incomplete: str) -> Iterable[str | tuple[str, str]]:
     client = get_client_from_ctx(ctx)
-    command_name: str = ctx.command.name
+    command_name: str = ctx.command.name or ""
     response: str = getattr(client.cat, command_name)(help=True).body
     columns = [
         {
@@ -26,7 +26,7 @@ def complete_column(ctx: typer.Context, incomplete: str) -> Iterable[str]:
             yield (column["name"], column["description"])
 
 
-def complete_sort(ctx: typer.Context, incomplete: str) -> Iterable[str]:
+def complete_sort(ctx: typer.Context, incomplete: str) -> Iterable[str | tuple[str, str]]:
     columns = list(complete_column(ctx, incomplete.split(":")[0]))
     orders = ["asc", "desc"]
     return [
@@ -46,7 +46,7 @@ def complete_index(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 def complete_node(ctx: typer.Context, incomplete: str) -> Iterable[str]:
     client = get_client_from_ctx(ctx)
-    nodes = [n["name"] for n in client.cat.nodes(format="json", h=["name"]).body]
+    nodes = [n["name"] for n in client.cat.nodes(format="json", h=["name"]).body] # type: ignore
     for node in nodes:
         if node.startswith(incomplete):
             yield node

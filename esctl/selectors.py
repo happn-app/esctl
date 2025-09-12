@@ -11,7 +11,7 @@ from yamlpath.wrappers.nodecoords import NodeCoords
 def select_from_context(ctx: typer.Context, value: Any) -> Any:
     contexts = [ctx]
     while contexts[-1].parent is not None:  # Find the root context
-        contexts.append(contexts[-1].parent)
+        contexts.append(contexts[-1].parent)  # type: ignore
     root_ctx = contexts[-2]
     if root_ctx.obj["jmespath"] is not None:
         return root_ctx.obj["jmespath"].search(value.body)

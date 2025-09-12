@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import TypedDict
 
 import typer
 from rich import print
@@ -17,15 +18,20 @@ from esctl.params import (
 app = typer.Typer()
 
 
+class SettingsPutParams(TypedDict):
+    persistent: dict[str, str] | None
+    transient: dict[str, str] | None
+
+
 @app.command()
 def settings(
     ctx: typer.Context,
-    settings_key: SettingsKeyArgument = None,
-    settings_value: SettingsValueArgument = None,
+    settings_key: SettingsKeyArgument | None = None,
+    settings_value: SettingsValueArgument | None = None,
     transient: SettingsTransientOption = False,
     format: FormatOption = Format.text,
     with_defaults: bool = True,
-    filter: str = None,
+    filter: str | None = None,
 ):
     client = get_client_from_ctx(ctx)
     if settings_key is None and settings_value is None:
@@ -75,6 +81,6 @@ def settings(
         typer.echo("Operation aborted.")
         raise typer.Abort()
     param_key = "transient" if transient else "persistent"
-    params = {param_key: {settings_key: settings_value}}
+    params: SettingsPutParams = {param_key: {settings_key: settings_value}} # type: ignore
     response = client.cluster.put_settings(**params)
     pretty_print(response, format=Format.json)

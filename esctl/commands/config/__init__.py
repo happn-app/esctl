@@ -7,6 +7,8 @@ from rich.table import Table
 import typer
 from typing_extensions import Annotated
 
+from esctl.models.config.http import HTTPESConfig
+
 from .add_context import app as add_context_app
 from esctl.completions import complete_context
 from esctl.config import Config, get_esctl_config_path
@@ -30,18 +32,42 @@ def list_contexts(
 ):
     config: Config = ctx.obj["config"]
     console = Console()
-    table = Table("", "Name", "URL", "Username", "Password", title="Available Contexts")
-    for context_name, context in config.contexts.items():
-        table.add_row(
-            "" if context_name != config.current_context else "→",
-            context_name
-            if context_name != config.current_context
-            else f"[b green]{context_name}[/]",
-            context.url,
-            context.username,
-            context.password if with_password else context.censored_password,
-        )
-    console.print(table)
+    http_contexts = {
+        name: context
+        for name, context in config.contexts.items()
+        if isinstance(context, HTTPESConfig)
+    }
+    if http_contexts:
+        table = Table("", "Name", "URL", "Username", "Password", title="Available Contexts")
+        for context_name, context in http_contexts.items():
+            table.add_row(
+                "" if context_name != config.current_context else "→",
+                context_name
+                if context_name != config.current_context
+                else f"[b green]{context_name}[/]",
+                context.url,
+                context.username,
+                context.password if with_password else context.censored_password,
+            )
+        console.print(table)
+    kube_contexts = {
+        name: context
+        for name, context in config.contexts.items()
+        if not isinstance(context, HTTPESConfig)
+    }
+    if kube_contexts:
+        table = Table("", "Name", "Kube Context", "Kube Namespace", "ES Name", title="Available Kube Contexts")
+        for context_name, context in kube_contexts.items():
+            table.add_row(
+                "" if context_name != config.current_context else "→",
+                context_name
+                if context_name != config.current_context
+                else f"[b green]{context_name}[/]",
+                context.kube_context or "default",
+                context.kube_namespace or "default",
+                context.es_name,
+            )
+        console.print(table)
 
 
 @app.command(help="Remove an ElasticSearch server from the esctl configuration file")
@@ -61,6 +87,8 @@ def edit(ctx: typer.Context):
         if shutil.which(editor):
             default = editor
             break
+    if default is None:
+        default = "vi"
     editor = os.getenv("EDITOR", default)
     subprocess.run([editor, str(get_esctl_config_path())])
 
