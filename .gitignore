@@ -176,4 +176,4 @@ cython_debug/
 # Nix stuff
 result
 
-__pycache__/*
+__pycache__
