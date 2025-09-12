@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "esctl"
-version = "1.5.0-dev"
+version = "1.5.0"
 description = "CLI tool to run commands on ES clusters"
 authors = ["Simon Bordeyne <simon.bordeyne@happn.fr>"]
 readme = "README.md"
