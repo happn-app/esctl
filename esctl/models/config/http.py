@@ -59,6 +59,8 @@ class HTTPESConfig(ESConfig):
 
     @property
     def censored_password(self) -> str:
+        if self.password is None:
+            return ""
         return self.password[:4] + "*" * (len(self.password) - 4)
 
     @property
