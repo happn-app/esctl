@@ -9,10 +9,11 @@ from rich.logging import RichHandler
 from rich import print
 from yamlpath import YAMLPath
 
+from esctl.models.config.base import ESConfig
 from esctl.models.config.gce import GCEESConfig
 from esctl.models.config.http import HTTPESConfig
 from esctl.models.config.kube import KubeESConfig
-from esctl.params import ContextOption, JMESPathOption, JSONPathOption, PrettyOption, VerboseOption, YAMLPathOption
+from esctl.params import CacheOption, ContextOption, JMESPathOption, JSONPathOption, PrettyOption, VerboseOption, YAMLPathOption
 
 from .commands.cat import app as cat_app
 from .commands.cluster import app as cluster_app
@@ -84,6 +85,7 @@ def callback(
     jmespath: JMESPathOption | None = None,
     yamlpath: YAMLPathOption | None = None,
     pretty: PrettyOption = True,
+    cache: CacheOption = True,
     version: Annotated[bool, typer.Option("--version", is_flag=True)] = False,
 ):
     if version:
@@ -120,10 +122,10 @@ def callback(
     if context is not None:
         cfg.current_context = context
 
-    conf = cfg.contexts.get(cfg.current_context)
-
+    conf: ESConfig | None = cfg.contexts.get(cfg.current_context)
     ctx.obj = {
         "config": cfg,
+        "cache_enabled": bool(cache),
         "context": conf,
         "verbosity": verbose,
         "logger": logger,

@@ -300,3 +300,11 @@ RestoreSnapshotIndexOption = Annotated[
         autocompletion=complete_snapshot_indices,
     ),
 ]
+
+CacheOption = Annotated[
+    Optional[bool],
+    typer.Option(
+        "--cache/--no-cache",
+        help="Enable or disable HTTP response caching. Caching is enabled by default.",
+    )
+]

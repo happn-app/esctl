@@ -1,4 +1,5 @@
 import errno
+import functools
 from pathlib import Path
 import sys
 from typing import Annotated, Any
@@ -66,6 +67,7 @@ class Config(BaseModel):
         save_config(self)
 
 
+@functools.lru_cache()
 def read_config() -> Config:
     config_path = get_esctl_config_path()
     if config_path.exists():
@@ -96,4 +98,5 @@ def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
     es_config = conf.contexts[context_name]
     if isinstance(es_config, GCEESConfig) or es_config.type == "gce":
         es_config.start_ssh_tunnel()
+    es_config.cache_enabled = bool(ctx.obj.get("cache_enabled", False))
     return es_config.client

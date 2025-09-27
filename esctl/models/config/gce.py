@@ -35,10 +35,10 @@ class HTTPConnectionPool(urllib3.connectionpool.HTTPConnectionPool):
     ConnectionCls = HTTPConnection  # type: ignore
 
 
-def HTTPNodeClassFactory(context_name: str) -> type[CacheHttpNode]:
+def HTTPNodeClassFactory(context_name: str, cache_enabled: bool) -> type[CacheHttpNode]:
     class HTTPNode(CacheHttpNode):
         def __init__(self, config: NodeConfig):
-            super().__init__(config, context_name)
+            super().__init__(config, context_name, cache_enabled)
             kw = self.pool.conn_kw
             self.pool = HTTPConnectionPool(
                 config.host,
@@ -121,7 +121,7 @@ class GCEESConfig(ESConfig):
         return Elasticsearch(
             self.url,
             basic_auth=self.basic_auth,
-            node_class=HTTPNodeClassFactory(self.name),
+            node_class=HTTPNodeClassFactory(self.name, self.cache_enabled),
             serializers={
                 JsonSerializer.mimetype: JsonSerializer(),
                 TextSerializer.mimetype: TextSerializer(),

@@ -7,9 +7,9 @@ from esctl.cache import Cache
 
 
 class CacheHttpNode(Urllib3HttpNode):
-    def __init__(self, config: NodeConfig, context_name: str):
+    def __init__(self, config: NodeConfig, context_name: str, cache_enabled: bool):
         super().__init__(config)
-        self.cache = Cache(context_name)
+        self.cache = Cache(context_name, enabled=cache_enabled)
 
     def perform_request(
         self,

@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 class ESConfig(BaseModel):
     name: str = Field(exclude=True)
+    cache_enabled: bool = Field(exclude=True, default=False)
 
     @property
     def client(self) -> Elasticsearch:

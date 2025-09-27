@@ -75,8 +75,9 @@ class Cache:
         else:
             return 300  # default 5 minutes
 
-    def __init__(self, context_name: str):
+    def __init__(self, context_name: str, enabled: bool = True):
         self.db_path = get_esctl_home() / "cache.db"
+        self.enabled = enabled
         self.conn = sqlite3.connect(self.db_path, autocommit=True)
         self.conn.execute("PRAGMA journal_mode=WAL;")
         self.conn.execute("PRAGMA synchronous=NORMAL;")
@@ -111,6 +112,10 @@ class Cache:
         headers: Optional[Mapping[str, Any]] = None,
     ) -> Optional[NodeApiResponse]:
         """Return cached response if fresh, else None (and evict if expired)."""
+        if method.upper() not in ("GET", "HEAD"):
+            return None
+        if not self.enabled:
+            return None
         headers_c = _canon_json(_canon_headers(headers))
         key = _make_cache_key(method, target, headers_c)
 
@@ -147,6 +152,10 @@ class Cache:
         ttl: Optional[int] = None,
     ) -> None:
         """Insert/refresh cache entry."""
+        if method.upper() not in ("GET", "HEAD"):
+            return
+        if not self.enabled:
+            return
         headers_c = _canon_json(_canon_headers(headers))
         key = _make_cache_key(method, target, headers_c)
         ttl = int(ttl if ttl is not None else 300) # default 5 minutes

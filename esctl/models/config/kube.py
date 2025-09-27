@@ -22,6 +22,7 @@ def KubeNodeClassFactory(
     kube_namespace: str,
     es_name: str,
     context_name: str,
+    cache_enabled: bool,
 ) -> Type[BaseNode]:
     kube_config.load_kube_config(context=kube_context)
     k8s_api = kube_client.CoreV1Api()
@@ -61,7 +62,7 @@ def KubeNodeClassFactory(
 
     class KubeHttpNode(CacheHttpNode):
         def __init__(self, config: NodeConfig):
-            super().__init__(config, context_name)
+            super().__init__(config, context_name, cache_enabled)
             kw = self.pool.conn_kw
             self.pool = KubePortForwardConnectionPool(
                 config.host,
@@ -115,6 +116,7 @@ class KubeESConfig(ESConfig):
                 self.kube_namespace,
                 self.es_name,
                 self.name,
+                self.cache_enabled,
             ),
             serializers={
                 JsonSerializer.mimetype: JsonSerializer(),
