@@ -51,13 +51,17 @@ class Config(BaseModel):
 
 
 def get_esctl_config_path() -> Path:
+    return get_esctl_home() / "config.json"
+
+
+def get_esctl_home() -> Path:
     if os.getenv("ESCONFIG"):
         return Path(os.environ["ESCONFIG"])
     HOME = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config"))
     CONFIG_DIR = HOME / "esctl"
     if not CONFIG_DIR.exists():
         CONFIG_DIR.mkdir(exist_ok=True, parents=True)
-    return CONFIG_DIR / "config.json"
+    return CONFIG_DIR
 
 
 def read_config() -> Config:
@@ -72,7 +76,7 @@ def save_config(config: Config):
     config_path.write_text(config.model_dump_json(indent=2))
 
 
-def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
+def get_current_context_from_ctx(ctx: typer.Context) -> str:
     root_ctx = get_root_ctx(ctx)
     context_name = root_ctx.params["context"]
     conf = read_config()
@@ -81,4 +85,9 @@ def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
     if context_name not in conf.contexts:
         print(f"[red bold]ERROR:[/] Context not found: {context_name}", file=sys.stderr)
         sys.exit(errno.ENOEXEC)
+    return context_name
+
+def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
+    conf = read_config()
+    context_name = get_current_context_from_ctx(ctx)
     return conf.contexts[context_name].client
