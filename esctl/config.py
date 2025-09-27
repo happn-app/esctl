@@ -1,14 +1,14 @@
 import errno
-import os
 from pathlib import Path
 import sys
 from typing import Annotated, Any
 
 from elasticsearch import Elasticsearch
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from rich import print
 import typer
 
+from esctl.constants import get_esctl_config_path
 from esctl.models.config.http import HTTPESConfig
 from esctl.models.config.kube import KubeESConfig
 from esctl.models.config.gce import GCEESConfig
@@ -26,6 +26,19 @@ class Config(BaseModel):
     def __setattr__(self, name: str, value: Any):
         super().__setattr__(name, value)
         save_config(self)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _inject_context_names(cls, v: Any):
+        if isinstance(v, dict) and isinstance(v.get("contexts"), dict):
+            new_contexts: dict[str, Any] = {}
+            for k, ctx in v["contexts"].items():
+                # If the serialized ctx is a dict, add name unless already present
+                if isinstance(ctx, dict) and "name" not in ctx:
+                    ctx = {**ctx, "name": k}
+                new_contexts[k] = ctx
+            v = {**v, "contexts": new_contexts}
+        return v
 
     def add_context(
         self,
@@ -53,20 +66,6 @@ class Config(BaseModel):
         save_config(self)
 
 
-def get_esctl_config_path() -> Path:
-    return get_esctl_home() / "config.json"
-
-
-def get_esctl_home() -> Path:
-    if os.getenv("ESCONFIG"):
-        return Path(os.environ["ESCONFIG"])
-    HOME = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config"))
-    CONFIG_DIR = HOME / "esctl"
-    if not CONFIG_DIR.exists():
-        CONFIG_DIR.mkdir(exist_ok=True, parents=True)
-    return CONFIG_DIR
-
-
 def read_config() -> Config:
     config_path = get_esctl_config_path()
     if config_path.exists():
@@ -89,6 +88,7 @@ def get_current_context_from_ctx(ctx: typer.Context) -> str:
         print(f"[red bold]ERROR:[/] Context not found: {context_name}", file=sys.stderr)
         sys.exit(errno.ENOEXEC)
     return context_name
+
 
 def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
     conf = read_config()

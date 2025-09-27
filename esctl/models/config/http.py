@@ -1,6 +1,6 @@
-from typing import Literal
+from typing import Literal, Type
 
-from elastic_transport import NodeConfig, Urllib3HttpNode
+from elastic_transport import NodeConfig
 from elasticsearch import Elasticsearch
 from elasticsearch.serializer import JsonSerializer, NdjsonSerializer, TextSerializer
 import urllib3
@@ -8,6 +8,7 @@ from urllib3.connection import HTTPConnection as Urllib3HTTPConnection
 
 from esctl.models.config.base import ESConfig
 from esctl.serializer import YamlSerializer
+from esctl.transport import CacheHttpNode
 
 
 class HTTPConnection(Urllib3HTTPConnection):
@@ -26,18 +27,20 @@ class HTTPConnectionPool(urllib3.connectionpool.HTTPConnectionPool):
     ConnectionCls = HTTPConnection  # type: ignore
 
 
-class HTTPNode(Urllib3HttpNode):
-    def __init__(self, config: NodeConfig):
-        super().__init__(config)
-        kw = self.pool.conn_kw
-        self.pool = HTTPConnectionPool(
-            config.host,
-            port=config.port,
-            timeout=urllib3.Timeout(total=config.request_timeout),
-            maxsize=config.connections_per_node,
-            block=True,
-            **kw,
-        )
+def HTTPNodeClassFactory(context_name: str) -> Type[CacheHttpNode]:
+    class HTTPNode(CacheHttpNode):
+        def __init__(self, config: NodeConfig):
+            super().__init__(config, context_name)
+            kw = self.pool.conn_kw
+            self.pool = HTTPConnectionPool(
+                config.host,
+                port=config.port,
+                timeout=urllib3.Timeout(total=config.request_timeout),
+                maxsize=config.connections_per_node,
+                block=True,
+                **kw,
+            )
+    return HTTPNode
 
 
 class HTTPESConfig(ESConfig):
@@ -68,7 +71,7 @@ class HTTPESConfig(ESConfig):
         return Elasticsearch(
             self.url,
             basic_auth=self.basic_auth,
-            node_class=HTTPNode,
+            node_class=HTTPNodeClassFactory(self.name),
             serializers={
                 JsonSerializer.mimetype: JsonSerializer(),
                 TextSerializer.mimetype: TextSerializer(),

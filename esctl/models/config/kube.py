@@ -4,7 +4,7 @@ from typing import Literal, Type
 
 from elasticsearch import Elasticsearch
 from elasticsearch.serializer import JsonSerializer, NdjsonSerializer, TextSerializer
-from elastic_transport import BaseNode, NodeConfig, Urllib3HttpNode
+from elastic_transport import BaseNode, NodeConfig
 from kubernetes import client as kube_client
 from kubernetes import config as kube_config
 from kubernetes.stream import portforward
@@ -14,12 +14,14 @@ from urllib3.connection import HTTPConnection
 
 from esctl.models.config.base import ESConfig
 from esctl.serializer import YamlSerializer
+from esctl.transport import CacheHttpNode
 
 
 def KubeNodeClassFactory(
     kube_context: str,
     kube_namespace: str,
     es_name: str,
+    context_name: str,
 ) -> Type[BaseNode]:
     kube_config.load_kube_config(context=kube_context)
     k8s_api = kube_client.CoreV1Api()
@@ -57,9 +59,9 @@ def KubeNodeClassFactory(
     class KubePortForwardConnectionPool(urllib3.connectionpool.HTTPConnectionPool):
         ConnectionCls = KubeHTTPConnection  # type: ignore
 
-    class KubeHttpNode(Urllib3HttpNode):
+    class KubeHttpNode(CacheHttpNode):
         def __init__(self, config: NodeConfig):
-            super().__init__(config)
+            super().__init__(config, context_name)
             kw = self.pool.conn_kw
             self.pool = KubePortForwardConnectionPool(
                 config.host,
@@ -112,6 +114,7 @@ class KubeESConfig(ESConfig):
                 self.kube_context,
                 self.kube_namespace,
                 self.es_name,
+                self.name,
             ),
             serializers={
                 JsonSerializer.mimetype: JsonSerializer(),

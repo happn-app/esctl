@@ -1,8 +1,10 @@
 from elasticsearch import Elasticsearch
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ESConfig(BaseModel):
+    name: str = Field(exclude=True)
+
     @property
     def client(self) -> Elasticsearch:
         raise NotImplementedError("Subclasses must implement this method")

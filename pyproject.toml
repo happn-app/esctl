@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "esctl"
-version = "1.7.0"
+version = "1.8.0"
 description = "CLI tool to run commands on ES clusters"
 authors = ["Simon Bordeyne <simon.bordeyne@happn.fr>"]
 readme = "README.md"
@@ -19,6 +19,8 @@ jsonpath-ng = "^1.7.0"
 yamlpath = "^3.8.2"
 kubernetes = "^32.0.1"
 ipython = "^9.5.0"
+blake3 = "^1.0.6"
+orjson = "^3.11.3"
 
 
 [tool.poetry.group.dev.dependencies]

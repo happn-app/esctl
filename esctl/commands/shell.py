@@ -10,7 +10,9 @@ from ruamel.yaml import YAML
 from pathlib import Path
 import json
 
-from esctl.config import get_current_context_from_ctx, get_esctl_home, read_config
+from esctl.cache import Cache
+from esctl.config import get_current_context_from_ctx, read_config
+from esctl.constants import get_esctl_home
 
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -79,6 +81,7 @@ def shell(
         "yaml": yaml,
         "json": json,
         "config": conf,
+        "cache": Cache(context_name),
         "Path": Path,
         "cwd": working_directory,
     }
