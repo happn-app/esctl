@@ -23,7 +23,7 @@ class HTTPConnection(Urllib3HTTPConnection):
 
 
 class HTTPConnectionPool(urllib3.connectionpool.HTTPConnectionPool):
-    ConnectionCls = HTTPConnection
+    ConnectionCls = HTTPConnection  # type: ignore
 
 
 class HTTPNode(Urllib3HttpNode):

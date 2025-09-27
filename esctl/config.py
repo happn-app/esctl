@@ -93,6 +93,7 @@ def get_current_context_from_ctx(ctx: typer.Context) -> str:
 def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
     conf = read_config()
     context_name = get_current_context_from_ctx(ctx)
-    if conf.contexts[context_name].type == "gce":
-        conf.contexts[context_name].start_ssh_tunnel() # type: ignore
-    return conf.contexts[context_name].client
+    es_config = conf.contexts[context_name]
+    if isinstance(es_config, GCEESConfig) or es_config.type == "gce":
+        es_config.start_ssh_tunnel()
+    return es_config.client

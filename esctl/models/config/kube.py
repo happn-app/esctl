@@ -4,7 +4,7 @@ from typing import Literal, Type
 
 from elasticsearch import Elasticsearch
 from elasticsearch.serializer import JsonSerializer, NdjsonSerializer, TextSerializer
-from elastic_transport import NodeConfig, Transport, Urllib3HttpNode
+from elastic_transport import BaseNode, NodeConfig, Urllib3HttpNode
 from kubernetes import client as kube_client
 from kubernetes import config as kube_config
 from kubernetes.stream import portforward
@@ -20,7 +20,7 @@ def KubeNodeClassFactory(
     kube_context: str,
     kube_namespace: str,
     es_name: str,
-) -> Type[Transport]:
+) -> Type[BaseNode]:
     kube_config.load_kube_config(context=kube_context)
     k8s_api = kube_client.CoreV1Api()
     pod_name = next(
@@ -55,7 +55,7 @@ def KubeNodeClassFactory(
             return response
 
     class KubePortForwardConnectionPool(urllib3.connectionpool.HTTPConnectionPool):
-        ConnectionCls = KubeHTTPConnection
+        ConnectionCls = KubeHTTPConnection  # type: ignore
 
     class KubeHttpNode(Urllib3HttpNode):
         def __init__(self, config: NodeConfig):
@@ -103,6 +103,8 @@ class KubeESConfig(ESConfig):
 
     @property
     def client(self) -> Elasticsearch:
+        if self.kube_context is None or self.kube_namespace is None or self.es_name is None:
+            raise ValueError("kube_context, kube_namespace and es_name must be set for kubernetes contexts")
         return Elasticsearch(
             "http://127.0.0.1:9200",
             basic_auth=self.basic_auth,

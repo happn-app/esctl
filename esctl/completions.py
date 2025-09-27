@@ -50,7 +50,7 @@ def complete_index(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 def complete_node(ctx: typer.Context, incomplete: str) -> Iterable[str]:
     client = get_client_from_ctx(ctx)
-    nodes = [n["name"] for n in client.cat.nodes(format="json", h=["name"]).body]  # type: ignore
+    nodes = [n["name"] for n in client.nodes.info().body["nodes"].values()]
     for node in nodes:
         if node.startswith(incomplete):
             yield node

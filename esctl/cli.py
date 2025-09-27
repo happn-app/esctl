@@ -1,6 +1,6 @@
 import importlib
 import logging
-from typing import Annotated
+from typing import Annotated, Any, Callable
 
 import typer
 from jmespath import compile as compile_jmespath
@@ -53,13 +53,12 @@ app.add_typer(shell_app, name="shell", help="Start an interactive shell to inter
 cfg = read_config()
 
 
-def alias_factory(command: str, args: list[str]):
+def alias_factory(command: str, args: Any):
     def callback(ctx: typer.Context):
         module = importlib.import_module(f".{command}", package="esctl.commands")
         cmd_name = command.split(".")[-1]
-        cmd = getattr(module, cmd_name)
-        ctx.invoke(cmd, ctx, **args)  # type: ignore
-
+        cmd: Callable = getattr(module, cmd_name)
+        ctx.invoke(cmd, ctx, **args)
     return callback
 
 
