@@ -9,6 +9,9 @@ from rich.logging import RichHandler
 from rich import print
 from yamlpath import YAMLPath
 
+from esctl.models.config.gce import GCEESConfig
+from esctl.models.config.http import HTTPESConfig
+from esctl.models.config.kube import KubeESConfig
 from esctl.params import ContextOption, JMESPathOption, JSONPathOption, PrettyOption, VerboseOption, YAMLPathOption
 
 from .commands.cat import app as cat_app
@@ -64,6 +67,13 @@ for alias_name, alias in cfg.aliases.items():
     app.command(alias_name, help=alias["help"], short_help=alias["help"])(
         alias_factory(alias["command"], alias["args"])
     )
+
+
+def exit_handler(conf: KubeESConfig | HTTPESConfig | GCEESConfig | None):
+    if conf is None:
+        return
+    if conf.type == "gce":
+        conf.stop_ssh_tunnel()
 
 
 @app.callback(invoke_without_command=True)
@@ -126,6 +136,7 @@ def callback(
     ctx.obj["jsonpath"] = parse_jsonpath(jsonpath) if jsonpath else None
     ctx.obj["jmespath"] = compile_jmespath(jmespath) if jmespath else None
     ctx.obj["yamlpath"] = YAMLPath(yamlpath) if yamlpath else None
+    ctx.call_on_close(lambda: exit_handler(conf))
 
 
 if __name__ == "__main__":

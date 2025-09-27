@@ -11,13 +11,14 @@ import typer
 
 from esctl.models.config.http import HTTPESConfig
 from esctl.models.config.kube import KubeESConfig
+from esctl.models.config.gce import GCEESConfig
 from esctl.utils import get_root_ctx
 
 
 class Config(BaseModel):
     config_path: Path
     contexts: dict[
-        str, Annotated[HTTPESConfig | KubeESConfig, Field(discriminator="type")]
+        str, Annotated[HTTPESConfig | KubeESConfig | GCEESConfig, Field(discriminator="type")]
     ]
     current_context: str
     aliases: dict[str, Any] = {}
@@ -39,6 +40,8 @@ class Config(BaseModel):
             self.contexts[context_name] = HTTPESConfig(type="http", **kwargs)
         elif context_type == "kubernetes":
             self.contexts[context_name] = KubeESConfig(type="kubernetes", **kwargs)
+        elif context_type == "gce":
+            self.contexts[context_name] = GCEESConfig(type="gce", **kwargs)
         save_config(self)
 
     def remove_context(self, context_name: str):
@@ -90,4 +93,6 @@ def get_current_context_from_ctx(ctx: typer.Context) -> str:
 def get_client_from_ctx(ctx: typer.Context) -> Elasticsearch:
     conf = read_config()
     context_name = get_current_context_from_ctx(ctx)
+    if conf.contexts[context_name].type == "gce":
+        conf.contexts[context_name].start_ssh_tunnel() # type: ignore
     return conf.contexts[context_name].client

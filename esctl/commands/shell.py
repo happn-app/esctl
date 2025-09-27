@@ -63,6 +63,8 @@ def shell(
 ):
     conf = read_config()
     context_name = get_current_context_from_ctx(ctx)
+    if conf.contexts[context_name].type == "gce":
+        conf.contexts[context_name].start_ssh_tunnel() # type: ignore
     client = conf.contexts[context_name].client
     ipython_dir = get_esctl_home() / "ipython" / context_name
     if not ipython_dir.exists():
