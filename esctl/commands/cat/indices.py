@@ -15,7 +15,7 @@ from esctl.params import (
     TimeOption,
 )
 from esctl.selectors import select_from_context
-from esctl.utils import get_cat_base_params_from_context
+from esctl.utils import get_cat_base_params_from_context, get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -38,7 +38,7 @@ def formatter(header: list[str], row: list[str]) -> list[str]:
 )
 def indices(
     ctx: typer.Context,
-    index: IndexArgument = '*',
+    index: IndexArgument = "*",
     header: HeaderOption | None = None,
     sort: SortOption | None = None,
     time: TimeOption | None = None,
@@ -58,4 +58,9 @@ def indices(
     )
     response = client.cat.indices(**params)
     response = select_from_context(ctx, response)
-    pretty_print(response, format=params["format"], formatter=formatter)
+    pretty_print(
+        response,
+        format=params["format"],
+        formatter=formatter,
+        pretty=get_root_ctx(ctx).obj.get("pretty", True),
+    )

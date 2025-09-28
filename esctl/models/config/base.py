@@ -21,5 +21,6 @@ class ESConfig(BaseModel):
     @classmethod
     def from_context_name(cls, context_name: str) -> "ESConfig":
         from esctl.config import read_config
+
         conf = read_config()
         return conf.contexts[context_name]

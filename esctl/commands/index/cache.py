@@ -8,6 +8,7 @@ from esctl.params import (
     IndexArgument,
 )
 from esctl.selectors import select_from_context
+from esctl.utils import get_root_ctx
 
 app = typer.Typer(
     name="cache",
@@ -26,4 +27,8 @@ def clear(
     client = get_client_from_ctx(ctx)
     response = client.indices.clear_cache(index=index)
     response = select_from_context(ctx, response)
-    pretty_print(response, format=format)
+    pretty_print(
+        response,
+        format=format,
+        pretty=get_root_ctx(ctx).obj.get("pretty", True),
+    )

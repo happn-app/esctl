@@ -117,9 +117,7 @@ def complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 def complete_repository(ctx: typer.Context, incomplete: str) -> Iterable[str]:
     client = get_client_from_ctx(ctx)
-    repositories = [
-        repo["name"] for repo in client.snapshot.get_repository().body
-    ]
+    repositories = [repo["name"] for repo in client.snapshot.get_repository().body]
     for repository in repositories:
         if repository.startswith(incomplete):
             yield repository
@@ -160,7 +158,9 @@ def complete_snapshot_indices(ctx: typer.Context, incomplete: str) -> Iterable[s
     indices = client.snapshot.get(
         repository=repository,
         snapshot=snapshot,
-    ).body["snapshots"][0]["indices"]
+    ).body[
+        "snapshots"
+    ][0]["indices"]
     for index in indices:
         if index.startswith(incomplete):
             yield index

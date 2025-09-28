@@ -48,6 +48,7 @@ def HTTPNodeClassFactory(context_name: str, cache_enabled: bool) -> type[CacheHt
                 block=True,
                 **kw,
             )
+
     return HTTPNode
 
 
@@ -94,8 +95,11 @@ class GCEESConfig(ESConfig):
         global _GCE_SSH_PROCESS
         if _GCE_SSH_PROCESS is not None and _GCE_SSH_PROCESS.poll() is None:
             return  # Tunnel already running
-        process = subprocess.Popen([
-                "gcloud", "compute", "ssh",
+        process = subprocess.Popen(
+            [
+                "gcloud",
+                "compute",
+                "ssh",
                 f"--ssh-flag=-N -L {self.port}:localhost:{self.target_port}",
                 f"--project={self.project_id}",
                 f"--zone={self.zone}",

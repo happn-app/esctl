@@ -22,13 +22,23 @@ class CacheHttpNode(Urllib3HttpNode):
         if method.upper() not in ("GET", "HEAD"):
             # Only cache GET and HEAD requests, pass through others
             # Don't want to cache update requests, obviously
-            return super().perform_request(method, target, body, headers, request_timeout)
+            return super().perform_request(
+                method, target, body, headers, request_timeout
+            )
         start_time = time.time()
         response = self.cache.get(method, target, headers)
         if response is not None:
             response.meta.duration = time.time() - start_time
             response.meta.node = self.config
             return response
-        response = super().perform_request(method, target, body, headers, request_timeout)
-        self.cache.set(method, target, response, headers=headers, ttl=Cache.get_ttl(f"{method.upper()} {target}"))
+        response = super().perform_request(
+            method, target, body, headers, request_timeout
+        )
+        self.cache.set(
+            method,
+            target,
+            response,
+            headers=headers,
+            ttl=Cache.get_ttl(f"{method.upper()} {target}"),
+        )
         return response

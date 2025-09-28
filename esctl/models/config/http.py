@@ -40,6 +40,7 @@ def HTTPNodeClassFactory(context_name: str, cache_enabled: bool) -> Type[CacheHt
                 block=True,
                 **kw,
             )
+
     return HTTPNode
 
 

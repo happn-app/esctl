@@ -5,8 +5,10 @@ from esctl.models.enums import Conflict, Format
 from esctl.output import pretty_print
 from esctl.params import IndexArgument, SliceOption
 from esctl.selectors import select_from_context
+from esctl.utils import get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
+
 
 @app.callback(
     help="Reindex a set of documents from one index to another.",
@@ -41,4 +43,6 @@ def reindex(
         require_alias=require_alias,
     ).raw
     response = select_from_context(ctx, response)
-    pretty_print(response, format=Format.json)
+    pretty_print(
+        response, format=Format.json, pretty=get_root_ctx(ctx).obj.get("pretty", True)
+    )

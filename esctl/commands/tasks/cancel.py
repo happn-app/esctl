@@ -8,6 +8,7 @@ from esctl.params import (
     TaskIdArgument,
 )
 from esctl.selectors import select_from_context
+from esctl.utils import get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -33,4 +34,8 @@ def cancel(
     client = get_client_from_ctx(ctx)
     response = client.tasks.cancel(**params).raw
     response = select_from_context(ctx, response)
-    pretty_print(response, format=params["format"])
+    pretty_print(
+        response,
+        format=params["format"],
+        pretty=get_root_ctx(ctx).obj.get("pretty", True),
+    )

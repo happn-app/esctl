@@ -19,7 +19,10 @@ from esctl.utils import get_root_ctx
 class Config(BaseModel):
     config_path: Path
     contexts: dict[
-        str, Annotated[HTTPESConfig | KubeESConfig | GCEESConfig, Field(discriminator="type")]
+        str,
+        Annotated[
+            HTTPESConfig | KubeESConfig | GCEESConfig, Field(discriminator="type")
+        ],
     ]
     current_context: str
     aliases: dict[str, Any] = {}

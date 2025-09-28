@@ -5,6 +5,7 @@ from esctl.config import read_config
 
 app = typer.Typer(rich_markup_mode="rich")
 
+
 @app.command(help="Add an HTTP context")
 def http(
     context_name: Annotated[str, typer.Argument(help="Name of the context")],
@@ -14,22 +15,28 @@ def http(
     port: Annotated[
         int, typer.Option("--port", "-p", help="Port the ES master listens on")
     ] = 9200,
-    username: Annotated[
-        str,
-        typer.Option(
-            "--username",
-            "-u",
-            help="Username of the user to connect as, using basic auth",
-        ),
-    ] | None = None,
-    password: Annotated[
-        str,
-        typer.Option(
-            "--password",
-            "-p",
-            help="Password of the user to connect as, using basic auth",
-        ),
-    ] | None = None,
+    username: (
+        Annotated[
+            str,
+            typer.Option(
+                "--username",
+                "-u",
+                help="Username of the user to connect as, using basic auth",
+            ),
+        ]
+        | None
+    ) = None,
+    password: (
+        Annotated[
+            str,
+            typer.Option(
+                "--password",
+                "-p",
+                help="Password of the user to connect as, using basic auth",
+            ),
+        ]
+        | None
+    ) = None,
 ):
     config = read_config()
     config.add_context(
@@ -54,22 +61,28 @@ def kubernetes(
             help="Namespace of the Kubernetes cluster",
         ),
     ] = "default",
-    context: Annotated[
-        str,
-        typer.Option(
-            "--context",
-            "-c",
-            help="Context, in the kubeconfig file for the kubernetes cluster",
-        ),
-    ] | None = None,
-    es_name: Annotated[
-        str,
-        typer.Option(
-            "--es-name",
-            "-e",
-            help="Name of the Elasticsearch cluster in Kubernetes",
-        ),
-    ] | None = None,
+    context: (
+        Annotated[
+            str,
+            typer.Option(
+                "--context",
+                "-c",
+                help="Context, in the kubeconfig file for the kubernetes cluster",
+            ),
+        ]
+        | None
+    ) = None,
+    es_name: (
+        Annotated[
+            str,
+            typer.Option(
+                "--es-name",
+                "-e",
+                help="Name of the Elasticsearch cluster in Kubernetes",
+            ),
+        ]
+        | None
+    ) = None,
 ):
     config = read_config()
     config.add_context(

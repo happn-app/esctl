@@ -11,6 +11,7 @@ from esctl.params import (
     NodeOption,
     ShardOption,
 )
+from esctl.utils import get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -38,4 +39,8 @@ def allocation_explain(
         index=index_,
         primary=primary,
     ).raw
-    pretty_print(response, format=Format.json)
+    pretty_print(
+        response,
+        format=Format.json,
+        pretty=get_root_ctx(ctx).obj.get("pretty", True),
+    )

@@ -13,7 +13,6 @@ from esctl.models.config.base import ESConfig
 from esctl.models.config.gce import GCEESConfig
 from esctl.models.config.http import HTTPESConfig
 from esctl.models.config.kube import KubeESConfig
-from esctl.params import CacheOption, ContextOption, JMESPathOption, JSONPathOption, PrettyOption, VerboseOption, YAMLPathOption
 
 from .commands.cat import app as cat_app
 from .commands.cluster import app as cluster_app
@@ -42,14 +41,46 @@ app.add_typer(
     name="cat",
     help="Compact and aligned text (CAT) APIs for Elasticsearch",
 )
-app.add_typer(cluster_app, name="cluster", help="Elasticsearch Cluster management APIs")
-app.add_typer(config_app, name="config", help="Manage esctl configuration")
-app.add_typer(task_app, name="task", help="Elasticsearch Task management APIs")
-app.add_typer(index_app, name="index", help="Elasticsearch Index management APIs")
-app.add_typer(reindex_app, name="reindex", help="Reindex from one index to another")
-app.add_typer(troubleshoot_app, name="troubleshoot", help="Troubleshoot Elasticsearch cluster issues")
-app.add_typer(snapshot_app, name="snapshot", help="Elasticsearch Snapshot and Restore APIs")
-app.add_typer(shell_app, name="shell", help="Start an interactive shell to interact with your cluster")
+app.add_typer(
+    cluster_app,
+    name="cluster",
+    help="Elasticsearch Cluster management APIs",
+)
+app.add_typer(
+    config_app,
+    name="config",
+    help="Manage esctl configuration",
+)
+app.add_typer(
+    task_app,
+    name="task",
+    help="Elasticsearch Task management APIs",
+)
+app.add_typer(
+    index_app,
+    name="index",
+    help="Elasticsearch Index management APIs",
+)
+app.add_typer(
+    reindex_app,
+    name="reindex",
+    help="Reindex from one index to another",
+)
+app.add_typer(
+    troubleshoot_app,
+    name="troubleshoot",
+    help="Troubleshoot Elasticsearch cluster issues",
+)
+app.add_typer(
+    snapshot_app,
+    name="snapshot",
+    help="Elasticsearch Snapshot and Restore APIs",
+)
+app.add_typer(
+    shell_app,
+    name="shell",
+    help="Start an interactive shell to interact with your cluster",
+)
 
 cfg = read_config()
 
@@ -60,6 +91,7 @@ def alias_factory(command: str, args: Any):
         cmd_name = command.split(".")[-1]
         cmd: Callable = getattr(module, cmd_name)
         ctx.invoke(cmd, ctx, **args)
+
     return callback
 
 
@@ -79,14 +111,69 @@ def exit_handler(conf: KubeESConfig | HTTPESConfig | GCEESConfig | None):
 @app.callback(invoke_without_command=True)
 def callback(
     ctx: typer.Context,
-    context: ContextOption | None = None,
-    verbose: VerboseOption = 0,
-    jsonpath: JSONPathOption | None = None,
-    jmespath: JMESPathOption | None = None,
-    yamlpath: YAMLPathOption | None = None,
-    pretty: PrettyOption = True,
-    cache: CacheOption = True,
-    version: Annotated[bool, typer.Option("--version", is_flag=True)] = False,
+    context: Annotated[
+        str | None,
+        typer.Option(
+            "--context",
+            "-c",
+            autocompletion=lambda incomplete: (
+                context for context in cfg.contexts if incomplete in context
+            ),
+            help="Elasticsearch cluster to use",
+            envvar="ESCTL_CONTEXT",
+        ),
+    ] = None,
+    verbose: Annotated[
+        int,
+        typer.Option(
+            "--verbose",
+            "-v",
+            count=True,
+            min=0,
+            max=4,
+            help="Increase verbosity level",
+        ),
+    ] = 0,
+    jsonpath: Annotated[
+        str | None,
+        typer.Option(
+            help="JSONPath expression to filter the response, implies --format=json",
+        ),
+    ] = None,
+    jmespath: Annotated[
+        str | None,
+        typer.Option(
+            help="JMESPath expression to filter the response, implies --format=json",
+        ),
+    ] = None,
+    yamlpath: Annotated[
+        str | None,
+        typer.Option(
+            help="YAMLPath expression to filter the response, implies --format=yaml",
+        ),
+    ] = None,
+    pretty: Annotated[
+        bool,
+        typer.Option(
+            "--pretty/--no-pretty",
+            help="Pretty print the output",
+        ),
+    ] = True,
+    cache: Annotated[
+        bool,
+        typer.Option(
+            "--cache/--no-cache",
+            help="Enable or disable HTTP response caching. Caching is enabled by default.",
+        ),
+    ] = True,
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            is_flag=True,
+            help="Prints version information and exit.",
+        ),
+    ] = False,
 ):
     if version:
         from esctl import __version__ as esctl_version
@@ -132,7 +219,7 @@ def callback(
         "jsonpath": jsonpath,
         "jmespath": jmespath,
         "yamlpath": yamlpath,
-        "pretty": pretty,
+        "pretty": bool(pretty),
     }
     ctx.obj["jsonpath"] = parse_jsonpath(jsonpath) if jsonpath else None
     ctx.obj["jmespath"] = compile_jmespath(jmespath) if jmespath else None

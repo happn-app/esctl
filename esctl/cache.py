@@ -12,6 +12,7 @@ from esctl.constants import get_esctl_home
 
 US = "\x1f"  # unit separator; never appears in JSON
 
+
 def _canon_json(obj: Any) -> str:
     """Deterministic, compact JSON (sorted keys, no extra spaces)."""
     return orjson.dumps(obj, option=orjson.OPT_SORT_KEYS).decode("utf-8")
@@ -39,12 +40,14 @@ def _make_cache_key(
 
 
 def _serialize(response: NodeApiResponse) -> str:
-    return _canon_json({
-        "status": response.meta.status,
-        "headers": dict(response.meta.headers),
-        "http_version": response.meta.http_version,
-        "body": response.body.decode("utf-8", errors="replace"),
-    })
+    return _canon_json(
+        {
+            "status": response.meta.status,
+            "headers": dict(response.meta.headers),
+            "http_version": response.meta.http_version,
+            "body": response.body.decode("utf-8", errors="replace"),
+        }
+    )
 
 
 def _deserialize(s: str) -> NodeApiResponse:
@@ -57,7 +60,7 @@ def _deserialize(s: str) -> NodeApiResponse:
             http_version=d["http_version"],
             node=None,  # type: ignore[arg-type]
             duration=0.0,  # type: ignore[arg-type
-        )
+        ),
     )
 
 
@@ -88,7 +91,8 @@ class Cache:
 
     def _initialize_db(self):
         with self.conn:
-            self.conn.execute(f"""
+            self.conn.execute(
+                f"""
                 CREATE TABLE IF NOT EXISTS http_cache_{self.context_name} (
                     cache_key     BLOB PRIMARY KEY,      -- 32 bytes blake3
                     method        TEXT NOT NULL,
@@ -98,12 +102,15 @@ class Cache:
                     stored_at     INTEGER NOT NULL,       -- epoch seconds
                     ttl           INTEGER NOT NULL        -- seconds
                 ) WITHOUT ROWID;
-            """)
+            """
+            )
             # Helpful secondary index if you ever want to purge by method/target.
-            self.conn.execute(f"""
+            self.conn.execute(
+                f"""
                 CREATE INDEX IF NOT EXISTS http_cache_{self.context_name}_method_target
                 ON http_cache(method, target);
-            """)
+            """
+            )
 
     def get(
         self,
@@ -158,7 +165,7 @@ class Cache:
             return
         headers_c = _canon_json(_canon_headers(headers))
         key = _make_cache_key(method, target, headers_c)
-        ttl = int(ttl if ttl is not None else 300) # default 5 minutes
+        ttl = int(ttl if ttl is not None else 300)  # default 5 minutes
         response_str = _serialize(response)
         with self.conn:
             self.conn.execute(
@@ -179,7 +186,10 @@ class Cache:
         headers_c = _canon_json(_canon_headers(headers))
         key = _make_cache_key(method, target, headers_c)
         with self.conn:
-            self.conn.execute(f"DELETE FROM http_cache_{self.context_name} WHERE cache_key = ?;", (key,))
+            self.conn.execute(
+                f"DELETE FROM http_cache_{self.context_name} WHERE cache_key = ?;",
+                (key,),
+            )
 
     def clear(self) -> None:
         with self.conn:

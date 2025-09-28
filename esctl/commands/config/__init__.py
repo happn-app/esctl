@@ -15,7 +15,12 @@ from esctl.completions import complete_context
 from esctl.config import Config, get_esctl_config_path
 
 app = typer.Typer(rich_markup_mode="rich")
-app.add_typer(add_context_app, name="add-context", help="Add an ElasticSearch server to the esctl configuration file",)
+app.add_typer(
+    add_context_app,
+    name="add-context",
+    help="Add an ElasticSearch server to the esctl configuration file",
+)
+
 
 @app.command(
     name="contexts",
@@ -39,13 +44,17 @@ def list_contexts(
         if context.type == "http"
     }
     if http_contexts:
-        table = Table("", "Name", "URL", "Username", "Password", title="Available Contexts")
+        table = Table(
+            "", "Name", "URL", "Username", "Password", title="Available Contexts"
+        )
         for context_name, context in http_contexts.items():
             table.add_row(
                 "" if context_name != config.current_context else "→",
-                context_name
-                if context_name != config.current_context
-                else f"[b green]{context_name}[/]",
+                (
+                    context_name
+                    if context_name != config.current_context
+                    else f"[b green]{context_name}[/]"
+                ),
                 context.url,
                 context.username,
                 context.password if with_password else context.censored_password,
@@ -57,13 +66,22 @@ def list_contexts(
         if context.type == "kubernetes"
     }
     if kube_contexts:
-        table = Table("", "Name", "Kube Context", "Kube Namespace", "ES Name", title="Available Kube Contexts")
+        table = Table(
+            "",
+            "Name",
+            "Kube Context",
+            "Kube Namespace",
+            "ES Name",
+            title="Available Kube Contexts",
+        )
         for context_name, context in kube_contexts.items():
             table.add_row(
                 "" if context_name != config.current_context else "→",
-                context_name
-                if context_name != config.current_context
-                else f"[b green]{context_name}[/]",
+                (
+                    context_name
+                    if context_name != config.current_context
+                    else f"[b green]{context_name}[/]"
+                ),
                 context.kube_context or "default",
                 context.kube_namespace or "default",
                 context.es_name,
@@ -129,6 +147,7 @@ def edit(ctx: typer.Context):
 #     # config.add_alias(alias_name, command, arguments)
 #     # typer.echo(f"Alias {alias_name} added")
 
+
 @app.command(help="Show completion for a specific shell")
 def completion(
     ctx: typer.Context,
@@ -137,10 +156,10 @@ def completion(
         typer.Argument(
             help="Shell type",
         ),
-    ]
+    ],
 ):
     # Typer internal callback to show the completion script
     # This is not documented but works, the second parameter is not used but is
     # typed as a click.Parameter, instead of instanciating one, we pass None
     # It breaks the typing but works perfectly fine in this instance, hence the 'type: ignore'
-    typer.completion.show_callback(ctx, None, shell) # type: ignore
+    typer.completion.show_callback(ctx, None, shell)  # type: ignore

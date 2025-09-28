@@ -1,3 +1,4 @@
+import functools
 from string import Formatter
 from datetime import timedelta
 from typing import Any
@@ -7,6 +8,7 @@ import typer
 from esctl.models.enums import Format
 
 
+@functools.lru_cache()
 def get_root_ctx(ctx: typer.Context) -> typer.Context:
     contexts = [ctx]
     while contexts[-1].parent is not None:  # Find the root context
@@ -17,6 +19,7 @@ def get_root_ctx(ctx: typer.Context) -> typer.Context:
     raise ValueError("No root context found")
 
 
+@functools.lru_cache()
 def get_cat_base_params_from_context(
     ctx: typer.Context, format: Format
 ) -> dict[str, Any]:
@@ -61,13 +64,13 @@ def strfdelta(tdelta: timedelta):
     """
 
     remainder = int(tdelta.total_seconds())
-    fmt='{M:02}m{S:02}s'
+    fmt = "{M:02}m{S:02}s"
     # Convert tdelta to integer seconds.
 
     f = Formatter()
     desired_fields = [field_tuple[1] for field_tuple in f.parse(fmt)]
-    possible_fields = ('W', 'D', 'H', 'M', 'S')
-    constants = {'W': 604800, 'D': 86400, 'H': 3600, 'M': 60, 'S': 1}
+    possible_fields = ("W", "D", "H", "M", "S")
+    constants = {"W": 604800, "D": 86400, "H": 3600, "M": 60, "S": 1}
     values = {}
     for field in possible_fields:
         if field in desired_fields and field in constants:

@@ -48,7 +48,6 @@ class EsctlPrompts(Prompts):
         ]
 
 
-
 def rich_to_ansi(markup: str) -> str:
     buf = io.StringIO()
     console = Console(file=buf, force_terminal=True, color_system="truecolor")
@@ -66,7 +65,7 @@ def shell(
     conf = read_config()
     context_name = get_current_context_from_ctx(ctx)
     if conf.contexts[context_name].type == "gce":
-        conf.contexts[context_name].start_ssh_tunnel() # type: ignore
+        conf.contexts[context_name].start_ssh_tunnel()  # type: ignore
     client = conf.contexts[context_name].client
     ipython_dir = get_esctl_home() / "ipython" / context_name
     if not ipython_dir.exists():
@@ -89,18 +88,24 @@ def shell(
     editor = os.getenv("EDITOR", "vi")
     # Configure banner + prompts
     c = Config()
+
     # pass the context name to the prompt class via a tiny wrapper factory
     # IPython expects a class, so we set a lambda that closes over context_name
     # using a subclass factory pattern:
     class _Factory(EsctlPrompts):
         def __init__(self, shell):
             super().__init__(shell, context_name)
+
     c.TerminalInteractiveShell.prompts_class = _Factory
-    banner = dedent(f"""
+    banner = dedent(
+        f"""
     esctl interactive shell for context: [bold blue]{context_name}[/] (ES [bold green]{es_version}[/])
     Available: {', '.join(context.keys())}
     [b]F2[/] to edit cell in [yellow]{editor}[/]
-    """.strip("\n"))
+    """.strip(
+            "\n"
+        )
+    )
     c.TerminalInteractiveShell.banner1 = rich_to_ansi(banner)
     c.TerminalInteractiveShell.term_title = True
     c.TerminalInteractiveShell.confirm_exit = False

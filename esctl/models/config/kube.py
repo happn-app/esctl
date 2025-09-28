@@ -27,12 +27,15 @@ def KubeNodeClassFactory(
     kube_config.load_kube_config(context=kube_context)
     k8s_api = kube_client.CoreV1Api()
     pod_name = next(
-        pod.metadata.name for pod in k8s_api.list_namespaced_pod(
+        pod.metadata.name
+        for pod in k8s_api.list_namespaced_pod(
             namespace=kube_namespace,
-            label_selector=",".join((
-                f"elasticsearch.k8s.elastic.co/cluster-name={es_name}",
-                "elasticsearch.k8s.elastic.co/node-master=true",
-            ))
+            label_selector=",".join(
+                (
+                    f"elasticsearch.k8s.elastic.co/cluster-name={es_name}",
+                    "elasticsearch.k8s.elastic.co/node-master=true",
+                )
+            ),
         ).items
     )
 
@@ -89,12 +92,18 @@ class KubeESConfig(ESConfig):
         k8s_client = kube_client.CoreV1Api()
         secrets = k8s_client.list_namespaced_secret(
             namespace=self.kube_namespace,
-            label_selector=",".join((
-                f"elasticsearch.k8s.elastic.co/cluster-name={self.es_name}",
-                "eck.k8s.elastic.co/credentials=true",
-            )),
+            label_selector=",".join(
+                (
+                    f"elasticsearch.k8s.elastic.co/cluster-name={self.es_name}",
+                    "eck.k8s.elastic.co/credentials=true",
+                )
+            ),
         )
-        elastic_secret = next(secret.data for secret in secrets.items if "elastic-user" in secret.metadata.name)
+        elastic_secret = next(
+            secret.data
+            for secret in secrets.items
+            if "elastic-user" in secret.metadata.name
+        )
         username = next(iter(elastic_secret.keys()))
         password = b64decode(next(iter(elastic_secret.values()))).decode("utf-8")
         return (username, password)
@@ -106,8 +115,14 @@ class KubeESConfig(ESConfig):
 
     @property
     def client(self) -> Elasticsearch:
-        if self.kube_context is None or self.kube_namespace is None or self.es_name is None:
-            raise ValueError("kube_context, kube_namespace and es_name must be set for kubernetes contexts")
+        if (
+            self.kube_context is None
+            or self.kube_namespace is None
+            or self.es_name is None
+        ):
+            raise ValueError(
+                "kube_context, kube_namespace and es_name must be set for kubernetes contexts"
+            )
         return Elasticsearch(
             "http://127.0.0.1:9200",
             basic_auth=self.basic_auth,

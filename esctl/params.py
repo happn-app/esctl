@@ -4,7 +4,6 @@ from typing_extensions import Annotated
 
 from esctl.completions import (
     complete_column,
-    complete_context,
     complete_index,
     complete_node,
     complete_parent_task_id,
@@ -23,7 +22,7 @@ IncludeUnloadedSegmentsOption = Annotated[
     typer.Option(
         "--include-unloaded-segments",
         help="If true, the response includes information from segments that are not loaded into memory. Defaults to false. ",
-    )
+    ),
 ]
 TimestampOption = Annotated[
     bool,
@@ -33,7 +32,7 @@ TimestampOption = Annotated[
         is_flag=True,
         flag_value=False,
         help="If true, returns HH:MM:SS and Unix epoch timestamps. Defaults to true.",
-    )
+    ),
 ]
 FormatOption = Annotated[
     Format,
@@ -194,51 +193,6 @@ SettingsValueArgument = Annotated[
         help="The value to set the setting to.",
     ),
 ]
-ContextOption = Annotated[
-    str,
-    typer.Option(
-        "--context",
-        "-c",
-        autocompletion=complete_context,
-        help="Elasticsearch cluster to use",
-        envvar="ESCTL_CONTEXT",
-    ),
-]
-VerboseOption = Annotated[
-    int,
-    typer.Option(
-        "--verbose",
-        "-v",
-        count=True,
-        min=0,
-        max=4,
-        help="Increase verbosity level",
-    ),
-]
-JSONPathOption = Annotated[
-    str,
-    typer.Option(
-        help="JSONPath expression to filter the response, implies --format=json",
-    ),
-]
-JMESPathOption = Annotated[
-    str,
-    typer.Option(
-        help="JMESPath expression to filter the response, implies --format=json",
-    ),
-]
-YAMLPathOption = Annotated[
-    str,
-    typer.Option(
-        help="YAMLPath expression to filter the response, implies --format=yaml",
-    ),
-]
-PrettyOption = Annotated[
-    bool,
-    typer.Option(
-        help="Pretty print the output",
-    ),
-]
 
 IndexArgument = Annotated[
     str,
@@ -299,12 +253,4 @@ RestoreSnapshotIndexOption = Annotated[
         help="The index to restore from the snapshot",
         autocompletion=complete_snapshot_indices,
     ),
-]
-
-CacheOption = Annotated[
-    Optional[bool],
-    typer.Option(
-        "--cache/--no-cache",
-        help="Enable or disable HTTP response caching. Caching is enabled by default.",
-    )
 ]

@@ -24,9 +24,14 @@ def default_formatter(header: list[str], row: list[str]) -> list[str]:
 
 
 def pretty_print(
-    response: Any, format: Format,
+    response: Any,
+    format: Format,
     formatter: Callable[[list[str], list[str]], list[str]] | None = None,
+    pretty: bool = True,
 ) -> None:
+    if not pretty:
+        print(response)
+        return
     console = Console()
     if formatter is None:
         formatter = default_formatter
@@ -39,9 +44,11 @@ def pretty_print(
             for row in rows:
                 table.add_row(*formatter(header, parse_row(row, len(header) - 1)))
             console.print(table)
-        elif isinstance(response, (list, tuple)) and all(
-            isinstance(item, dict) for item in response
-        ) and len(response) > 0:
+        elif (
+            isinstance(response, (list, tuple))
+            and all(isinstance(item, dict) for item in response)
+            and len(response) > 0
+        ):
             header = list(response[0].keys()) if response else []
             table = Table(*header)
             for item in response:

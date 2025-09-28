@@ -6,6 +6,7 @@ from esctl.models.enums import Format
 from esctl.output import pretty_print
 from esctl.params import IndexOption
 from esctl.selectors import select_from_context
+from esctl.utils import get_root_ctx
 
 app = typer.Typer()
 
@@ -15,11 +16,14 @@ def snapshot_callback(ctx: typer.Context, value: str) -> str:
         return value
     client = get_client_from_ctx(ctx)
     repository: str = ctx.params["repository"]
-    snapshots = client.snapshot.get(repository=repository, snapshot="*").body["snapshots"]
+    snapshots = client.snapshot.get(repository=repository, snapshot="*").body[
+        "snapshots"
+    ]
     snapshot = snapshots[-1]["snapshot"] if snapshots else None  # type: ignore
     if snapshot is None:
         raise typer.BadParameter(f"No snapshots found in repository {repository}")
     return snapshot
+
 
 @app.command(
     help="Restore a snapshot from a repository.",
@@ -37,11 +41,17 @@ def restore(
     if not repository:
         return
 
-    index = client.snapshot.get(repository=repository, snapshot=snapshot).body["snapshots"][0]["indices"]
+    index = client.snapshot.get(repository=repository, snapshot=snapshot).body[
+        "snapshots"
+    ][0]["indices"]
     response = client.snapshot.restore(
         repository=repository,
         snapshot=snapshot,
         indices=index,
     ).raw
     response = select_from_context(ctx, response)
-    pretty_print(response, format=Format.json)
+    pretty_print(
+        response,
+        format=Format.json,
+        pretty=get_root_ctx(ctx).obj.get("pretty", True),
+    )
