@@ -1,0 +1,51 @@
+name: Auto Releases
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: [self-hosted, infra]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install cargo-binstall
+        run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+      - name: Install tq
+        run: cargo binstall -y tomlq
+
+      - name: Get current version
+        id: get_version
+        run: |
+          echo version=$(tq -r 'tool.poetry.version' -f pyproject.toml) >> $GITHUB_OUTPUT
+
+      - name: Get latest git tag
+        id: get_latest_tag
+        # Get the latest tag from git, removing the leading 'v'
+        run: |
+          echo latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) | cut -c2-) >> $GITHUB_OUTPUT
+
+      - uses: jackbilestech/semver-compare@1.0.4
+        continue-on-error: true
+        with:
+          head: ${{ steps.get_version.outputs.version }}
+          base: ${{ steps.get_latest_tag.outputs.latest_tag }}
+          operator: '>'
+
+      - name: Create new GitHub Release
+        if: success()
+        uses: ncipollo/release-action@v1.20.0
+        with:
+          tag: v${{ steps.get_version.outputs.version }}
+          name: v${{ steps.get_version.outputs.version }}
+          commit: ${{ github.sha }}
+          body: |
+            ## Changes since ${{ steps.get_latest_tag.outputs.latest_tag }}
+            ${{ steps.get_latest_tag.outputs.latest_tag }}...${{ steps.get_version.outputs.version }}
+            $(git log ${{ steps.get_latest_tag.outputs.latest_tag }}..HEAD --pretty=format:'- %s (%an)' | sed 's/-/  -/')
+          draft: false
+          prerelease: false
