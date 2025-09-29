@@ -104,11 +104,12 @@ class Cache:
                 ) WITHOUT ROWID;
             """
             )
+        with self.conn:
             # Helpful secondary index if you ever want to purge by method/target.
             self.conn.execute(
                 f"""
                 CREATE INDEX IF NOT EXISTS http_cache_{self.context_name}_method_target
-                ON http_cache(method, target);
+                ON http_cache_{self.context_name}(method, target);
             """
             )
 
