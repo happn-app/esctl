@@ -11,6 +11,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-tags: true
+          fetch-depth: 0
 
       - name: 🏗 Set up yq
         uses: frenck/action-setup-yq@v1.0.2
