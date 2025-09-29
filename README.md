@@ -26,3 +26,8 @@ nix run 'git+ssh://git@github.com/happn-app/esctl' -- --help
 ```sh
 pipx install .
 ```
+
+If you already have it installed and want to upgrade:
+```sh
+pipx install . --force
+```
