@@ -12,23 +12,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Set up cargo
-        uses: actions-rs/toolchain@v1.0.6
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-
-      - name: Install cargo-binstall
-        run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-
-      - name: Install tq
-        run: cargo binstall -y tomlq
+      - name: 🏗 Set up yq
+        uses: frenck/action-setup-yq@v1.0.2
 
       - name: Get current version
         id: get_version
         run: |
-          echo version=$(tq -r 'tool.poetry.version' -f pyproject.toml) >> $GITHUB_OUTPUT
+          echo version=$(yq -r 'tool.poetry.version' pyproject.toml) >> $GITHUB_OUTPUT
 
       - name: Get latest git tag
         id: get_latest_tag
