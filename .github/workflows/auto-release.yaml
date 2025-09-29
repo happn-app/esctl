@@ -15,34 +15,66 @@ jobs:
       - name: 🏗 Set up yq
         uses: frenck/action-setup-yq@v1.0.2
 
-      - name: Get current version
-        id: get_version
+      - name: Check pyproject.toml version is higher than latest git tag
+        id: check
         run: |
-          echo version=$(yq -r 'tool.poetry.version' pyproject.toml) >> $GITHUB_OUTPUT
+          # Shamelessly copied from https://stackoverflow.com/questions/4023830/how-to-compare-two-strings-in-dot-separated-version-format-in-bash
+          vercomp () {
+              if [[ $1 == $2 ]]
+              then
+                  return 0
+              fi
+              local IFS=.
+              local i ver1=($1) ver2=($2)
+              # fill empty fields in ver1 with zeros
+              for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+              do
+                  ver1[i]=0
+              done
+              for ((i=0; i<${#ver1[@]}; i++))
+              do
+                  if ((10#${ver1[i]:=0} > 10#${ver2[i]:=0}))
+                  then
+                      return 1
+                  fi
+                  if ((10#${ver1[i]} < 10#${ver2[i]}))
+                  then
+                      return 2
+                  fi
+              done
+              return 0
+          }
+          version=$(yq -r 'tool.poetry.version' pyproject.toml)
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) | cut -c2-)
+          echo "Current version: $version"
+          echo "Latest tag: $latest_tag"
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+          changes=$(git log $latest_tag..HEAD --pretty=format:'- %s (%an)' | sed 's/-/  -/')
+          echo "changes=$changes" >> $GITHUB_OUTPUT
+          vercomp $version $latest_tag
+          case $? in
+              0) echo "Version $version is the same as latest tag $latest_tag"; echo "skip=1" >> $GITHUB_OUTPUT ;;
+              1) echo "Version $version is greater than latest tag $latest_tag"; echo "skip=0" >> $GITHUB_OUTPUT;;
+              2) echo "Version $version is less than latest tag $latest_tag"; echo "skip=1" >> $GITHUB_OUTPUT ;;
+          esac
 
       - name: Get latest git tag
-        id: get_latest_tag
+        id: latest_release_version
         # Get the latest tag from git, removing the leading 'v'
         run: |
-          echo latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) | cut -c2-) >> $GITHUB_OUTPUT
-
-      - uses: jackbilestech/semver-compare@1.0.4
-        continue-on-error: true
-        with:
-          head: ${{ steps.get_version.outputs.version }}
-          base: ${{ steps.get_latest_tag.outputs.latest_tag }}
-          operator: '>'
+          echo version=$(git describe --tags $(git rev-list --tags --max-count=1) | cut -c2-) >> $GITHUB_OUTPUT
 
       - name: Create new GitHub Release
-        if: success()
+        if: steps.check.outputs.skip == '0'
         uses: ncipollo/release-action@v1.20.0
         with:
-          tag: v${{ steps.get_version.outputs.version }}
-          name: v${{ steps.get_version.outputs.version }}
+          tag: v${{ steps.check.outputs.version }}
+          name: v${{ steps.check.outputs.version }}
           commit: ${{ github.sha }}
           body: |
-            ## Changes since ${{ steps.get_latest_tag.outputs.latest_tag }}
-            ${{ steps.get_latest_tag.outputs.latest_tag }}...${{ steps.get_version.outputs.version }}
-            $(git log ${{ steps.get_latest_tag.outputs.latest_tag }}..HEAD --pretty=format:'- %s (%an)' | sed 's/-/  -/')
+            ## Changes since ${{ steps.check.outputs.latest_tag }}
+            ${{ steps.check.outputs.latest_tag }}...${{ steps.check.outputs.version }}
+            ${{ steps.check.outputs.changes }}
           draft: false
           prerelease: false
