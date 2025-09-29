@@ -17,6 +17,7 @@ jobs:
 
       - name: Check pyproject.toml version is higher than latest git tag
         id: check
+        shell: bash
         run: |
           # Shamelessly copied from https://stackoverflow.com/questions/4023830/how-to-compare-two-strings-in-dot-separated-version-format-in-bash
           vercomp () {
@@ -44,7 +45,7 @@ jobs:
               done
               return 0
           }
-          version=$(yq -r 'tool.poetry.version' pyproject.toml)
+          version=$(yq -r '.tool.poetry.version' pyproject.toml)
           latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) | cut -c2-)
           echo "Current version: $version"
           echo "Latest tag: $latest_tag"
