@@ -54,6 +54,9 @@ jobs:
           echo "Latest tag: $latest_tag"
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+          echo 'changes<<EOF' >> $GITHUB_OUTPUT
+          echo $changes >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
           changes=$(git log v$latest_tag..HEAD --pretty=format:'- %s (%an)' | sed 's/-/  -/')
           echo "changes=$changes" >> $GITHUB_OUTPUT
           vercomp $version $latest_tag
