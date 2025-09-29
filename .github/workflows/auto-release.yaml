@@ -59,11 +59,14 @@ jobs:
           echo $changes >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
           vercomp $version $latest_tag
-          case $? in
-              0) echo "Version $version is the same as latest tag $latest_tag"; echo "skip=1" >> $GITHUB_OUTPUT ;;
-              1) echo "Version $version is greater than latest tag $latest_tag"; echo "skip=0" >> $GITHUB_OUTPUT;;
-              2) echo "Version $version is less than latest tag $latest_tag"; echo "skip=1" >> $GITHUB_OUTPUT ;;
-          esac
+          if [[ $? == 1 ]]; then
+            echo "New version to release"
+            echo "skip=0" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "No new version to release"
+            echo "skip=1" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create new GitHub Release
         if: steps.check.outputs.skip == '0'
