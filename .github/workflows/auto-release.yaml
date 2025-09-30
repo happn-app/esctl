@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+    paths:
+      - './.github/workflows/auto-release.yaml'
+      - 'pyproject.toml'
 
 jobs:
   release:
@@ -22,7 +25,9 @@ jobs:
         id: check
         shell: bash
         run: |
-          # Shamelessly copied from https://stackoverflow.com/questions/4023830/how-to-compare-two-strings-in-dot-separated-version-format-in-bash
+          # Shamelessly copied from
+          # https://stackoverflow.com/questions/4023830/how-to-compare-two-strings-in-dot-separated-version-format-in-bash
+          # Adapted to echo the result, and not return it as exit code (cause it breaks the step)
           vercomp () {
               if [[ $1 == $2 ]]
               then

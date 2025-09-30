@@ -158,9 +158,7 @@ def complete_snapshot_indices(ctx: typer.Context, incomplete: str) -> Iterable[s
     indices = client.snapshot.get(
         repository=repository,
         snapshot=snapshot,
-    ).body[
-        "snapshots"
-    ][0]["indices"]
+    ).body["snapshots"][0]["indices"]
     for index in indices:
         if index.startswith(incomplete):
             yield index

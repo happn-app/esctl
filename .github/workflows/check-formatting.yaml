@@ -1,0 +1,49 @@
+name: Check formatting
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - './.github/workflows/check-formatting.yaml'
+      - '**/*.py'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - './.github/workflows/check-formatting.yaml'
+      - '**/*.py'
+
+
+jobs:
+  formatting:
+    name: Check formatting
+    runs-on: [self-hosted, infra]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: '3.11'
+
+      - name: Set up poetry
+        uses: abatilo/actions-poetry@v4.0.0
+        with:
+          poetry-version: '1.8.5'
+
+      - uses: actions/cache@v4.3.0
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Check formatting
+        run: poetry run ruff format --check
+
+      - name: Lint code
+        run: poetry run ruff check

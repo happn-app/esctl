@@ -32,20 +32,34 @@ def troubleshoot(
     shards = client.cat.shards(
         format="json", h=["index", "shard", "prirep", "state", "unassigned.reason"]
     ).raw
-    unassigned_shards: list[dict[str, Any]] = [s for s in shards if s["state"] == "UNASSIGNED"]  # type: ignore
+    unassigned_shards: list[dict[str, Any]] = [
+        s
+        for s in shards
+        if s["state"] == "UNASSIGNED"  # type: ignore
+    ]  # type: ignore
     initializing_shards = [s for s in shards if s["state"] == "INITIALIZING"]  # type: ignore
     relocating_shards = [s for s in shards if s["state"] == "RELOCATING"]  # type: ignore
     if initializing_shards:
         print(f"⚠️ -- {len(initializing_shards)} initializing shards:")
         table = Table("index", "shard", "prirep", "state")
         for shard in initializing_shards:
-            table.add_row(shard["index"], shard["shard"], shard["prirep"], shard["state"])  # type: ignore
+            table.add_row(
+                shard["index"],  # type: ignore
+                shard["shard"],  # type: ignore
+                shard["prirep"],  # type: ignore
+                shard["state"],  # type: ignore
+            )
         print(table)
     if relocating_shards:
         print(f"⚠️ -- {len(relocating_shards)} relocating shards:")
         table = Table("index", "shard", "prirep", "state")
         for shard in relocating_shards:
-            table.add_row(shard["index"], shard["shard"], shard["prirep"], shard["state"])  # type: ignore
+            table.add_row(
+                shard["index"],  # type: ignore
+                shard["shard"],  # type: ignore
+                shard["prirep"],  # type: ignore
+                shard["state"],  # type: ignore
+            )
         print(table)
     if not unassigned_shards:
         print("✅ -- No unassigned shards, cluster is going to recover eventually.")
@@ -64,7 +78,11 @@ def troubleshoot(
     # Check that the shard's index still exists, and that it's not a "system" index, denoted by a leading dot
     indices = client.cat.indices(format="json", h=["index"]).raw
     existing_indices = {idx["index"] for idx in indices}  # type: ignore
-    unassigned_absent_indices = {shard["index"] for shard in unassigned_shards if shard["index"] not in existing_indices}  # type: ignore
+    unassigned_absent_indices = {
+        shard["index"]
+        for shard in unassigned_shards
+        if shard["index"] not in existing_indices
+    }  # type: ignore
     if unassigned_absent_indices:
         print(
             f"❌ -- The following indices with unassigned shards do not exist: {', '.join(unassigned_absent_indices)}"
@@ -76,7 +94,9 @@ def troubleshoot(
             "    If these indices were not recently deleted, you may need to restore them from a snapshot or backup."
         )
         typer.Exit(code=1)
-    system_indices = {shard["index"] for shard in unassigned_shards if shard["index"].startswith(".")}  # type: ignore
+    system_indices = {
+        shard["index"] for shard in unassigned_shards if shard["index"].startswith(".")
+    }  # type: ignore
     if system_indices:
         print(
             f"❌ -- The following system indices with unassigned shards exist: {', '.join(system_indices)}"
@@ -96,12 +116,12 @@ def troubleshoot(
     for shard in unassigned_shards:
         index = shard["index"]
         print(
-            f"❌ -- Explanation for unallocated shard {shard["shard"]} ([b]{shard["prirep"]}[/]) detected on index: {index}"
+            f"❌ -- Explanation for unallocated shard {shard['shard']} ([b]{shard['prirep']}[/]) detected on index: {index}"
         )
         explanation = client.cluster.allocation_explain(
             index=index, shard=shard["shard"], primary=shard["prirep"] == "p"
         ).raw
-        print(f"    {explanation["allocate_explanation"]}")
+        print(f"    {explanation['allocate_explanation']}")
         all_deciders = set()
         for decision in explanation.get("node_allocation_decisions", []):
             print(f"    [b]Node:[/b] {decision['node_name']}")

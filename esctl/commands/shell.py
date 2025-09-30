@@ -100,11 +100,9 @@ def shell(
     banner = dedent(
         f"""
     esctl interactive shell for context: [bold blue]{context_name}[/] (ES [bold green]{es_version}[/])
-    Available: {', '.join(context.keys())}
+    Available: {", ".join(context.keys())}
     [b]F2[/] to edit cell in [yellow]{editor}[/]
-    """.strip(
-            "\n"
-        )
+    """.strip("\n")
     )
     c.TerminalInteractiveShell.banner1 = rich_to_ansi(banner)
     c.TerminalInteractiveShell.term_title = True
