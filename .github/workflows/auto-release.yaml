@@ -26,6 +26,7 @@ jobs:
           vercomp () {
               if [[ $1 == $2 ]]
               then
+                  echo "0"
                   return 0
               fi
               local IFS=.
@@ -39,11 +40,13 @@ jobs:
               do
                   if ((10#${ver1[i]:=0} > 10#${ver2[i]:=0}))
                   then
-                      return 1
+                      echo ">"
+                      return 0
                   fi
                   if ((10#${ver1[i]} < 10#${ver2[i]}))
                   then
-                      return 2
+                      echo "<"
+                      return 0
                   fi
               done
               return 0
@@ -59,14 +62,14 @@ jobs:
           echo $changes >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
           echo "Checking if $version > $latest_tag"
-          vercomp $version $latest_tag
-          if [[ $? == 1 ]]; then
+          if [[ $(vercomp $version $latest_tag) == '>' ]]; then
             echo "New version to release"
             echo "skip=0" >> $GITHUB_OUTPUT
           else
             echo "No new version to release"
             echo "skip=1" >> $GITHUB_OUTPUT
           fi
+          exit 0
 
       - name: Create new GitHub Release
         if: steps.check.outputs.skip == '0'
