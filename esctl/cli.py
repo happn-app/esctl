@@ -185,6 +185,7 @@ def callback(
         print(f"Elasticsearch version : [blue]{es_version}[/]")
         print(f"Kubernetes version    : [blue]{k8s_version}[/]")
         print(f"Python version        : [blue]{sys.version}[/]")
+        print("License               : [blue]Apache-2.0[/]")
         raise typer.Exit()
     # Make jsonpath, jmespath and yamlpath mutually exclusive
     if len([arg for arg in (jsonpath, jmespath, yamlpath) if arg]) > 1:
