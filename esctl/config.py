@@ -83,14 +83,24 @@ def read_config() -> Config:
         except ValidationError as exception:
             print("[red bold]ERROR:[/] Failed to read config file")
             for error in exception.errors():
-                print(f"  -  {error['msg']}: [b]{'.'.join(str(loc) for loc in error['loc'])}[/]")
-            if Confirm.ask("Do you want to edit it to fix the issue?", case_sensitive=False, default=True,):
+                print(
+                    f"  -  {error['msg']}: [b]{'.'.join(str(loc) for loc in error['loc'])}[/]"
+                )
+            if Confirm.ask(
+                "Do you want to edit it to fix the issue?",
+                case_sensitive=False,
+                default=True,
+            ):
                 edit_config()
                 return read_config()
             sys.exit(errno.ENOEXEC)
         except Exception as exception:
             print(f"[red bold]ERROR:[/] Failed to read config file: {exception}")
-            if Confirm.ask("Do you want to edit it to fix the issue?", case_sensitive=False, default=True,):
+            if Confirm.ask(
+                "Do you want to edit it to fix the issue?",
+                case_sensitive=False,
+                default=True,
+            ):
                 edit_config()
                 return read_config()
             sys.exit(errno.ENOEXEC)
