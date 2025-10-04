@@ -23,6 +23,7 @@ from .commands.reindex import app as reindex_app
 from .commands.troubleshoot import app as troubleshoot_app
 from .commands.snapshot import app as snapshot_app
 from .commands.shell import app as shell_app
+from .commands._exec import app as exec_app
 from .config import read_config
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -35,6 +36,7 @@ setattr(reindex_app, "root", app)
 setattr(troubleshoot_app, "root", app)
 setattr(snapshot_app, "root", app)
 setattr(shell_app, "root", app)
+setattr(exec_app, "root", app)
 
 app.add_typer(
     cat_app,
@@ -80,6 +82,11 @@ app.add_typer(
     shell_app,
     name="shell",
     help="Start an interactive shell to interact with your cluster",
+)
+app.add_typer(
+    exec_app,
+    name="exec",
+    help="Execute a python script to interact with your cluster",
 )
 
 cfg = read_config()
