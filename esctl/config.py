@@ -1,12 +1,16 @@
 import errno
 import functools
+import os
 from pathlib import Path
+import shutil
+import subprocess
 import sys
 from typing import Annotated, Any
 
 from elasticsearch import Elasticsearch
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, ValidationError, model_validator
 from rich import print
+from rich.prompt import Confirm
 import typer
 
 from esctl.constants import get_esctl_config_path
@@ -74,13 +78,44 @@ class Config(BaseModel):
 def read_config() -> Config:
     config_path = get_esctl_config_path()
     if config_path.exists():
-        return Config.model_validate_json(config_path.read_text())
+        try:
+            return Config.model_validate_json(config_path.read_text())
+        except ValidationError as exception:
+            print("[red bold]ERROR:[/] Failed to read config file")
+            for error in exception.errors():
+                print(f"  -  {error['msg']}: [b]{'.'.join(str(loc) for loc in error['loc'])}[/]")
+            if Confirm.ask("Do you want to edit it to fix the issue?", case_sensitive=False, default=True,):
+                edit_config()
+                return read_config()
+            sys.exit(errno.ENOEXEC)
+        except Exception as exception:
+            print(f"[red bold]ERROR:[/] Failed to read config file: {exception}")
+            if Confirm.ask("Do you want to edit it to fix the issue?", case_sensitive=False, default=True,):
+                edit_config()
+                return read_config()
+            sys.exit(errno.ENOEXEC)
     return Config(config_path=config_path, contexts={}, current_context="")
 
 
 def save_config(config: Config):
     config_path = get_esctl_config_path()
     config_path.write_text(config.model_dump_json(indent=2))
+
+
+def edit_config(lineno: int | None = None):
+    common_editors = ["nvim", "vim", "emacs", "vi", "nano"]
+    default = None
+    for editor in common_editors:
+        if shutil.which(editor):
+            default = editor
+            break
+    if default is None:
+        default = "vi"
+    editor = os.getenv("EDITOR", default)
+    arguments = [editor, str(get_esctl_config_path())]
+    if editor in ["nvim", "vim", "vi"] and lineno is not None:
+        arguments.insert(1, f"+{lineno}")
+    subprocess.run(arguments)
 
 
 def get_current_context_from_ctx(ctx: typer.Context) -> str:

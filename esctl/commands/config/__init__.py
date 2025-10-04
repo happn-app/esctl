@@ -1,7 +1,3 @@
-import os
-import shutil
-import subprocess
-
 from rich.console import Console
 from rich.table import Table
 import typer
@@ -12,7 +8,7 @@ from esctl.models.enums import Shell
 
 from .add_context import app as add_context_app
 from esctl.completions import complete_context
-from esctl.config import Config, get_esctl_config_path
+from esctl.config import Config, edit_config
 
 app = typer.Typer(rich_markup_mode="rich")
 app.add_typer(
@@ -99,17 +95,8 @@ def remove_context(
 
 
 @app.command(help="Open the esctl configuration file in the default editor")
-def edit(ctx: typer.Context):
-    common_editors = ["nvim", "vim", "emacs", "vi", "nano"]
-    default = None
-    for editor in common_editors:
-        if shutil.which(editor):
-            default = editor
-            break
-    if default is None:
-        default = "vi"
-    editor = os.getenv("EDITOR", default)
-    subprocess.run([editor, str(get_esctl_config_path())])
+def edit():
+    edit_config()
 
 
 # TODO: find a way to add aliases to commands without having to edit the config file
