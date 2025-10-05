@@ -2,6 +2,7 @@ import errno
 import functools
 import os
 from pathlib import Path
+import shlex
 import shutil
 import subprocess
 import sys
@@ -30,10 +31,25 @@ class Config(BaseModel):
     ]
     current_context: str
     aliases: dict[str, Any] = {}
+    github_auth_command: str | None = None
 
     def __setattr__(self, name: str, value: Any):
         super().__setattr__(name, value)
         save_config(self)
+
+    @property
+    def github_auth(self) -> str | None:
+        if self.github_auth_command:
+            try:
+                return (
+                    subprocess.check_output(shlex.split(self.github_auth_command))
+                    .decode("utf-8")
+                    .strip()
+                )
+            except subprocess.CalledProcessError as e:
+                print(f"[red bold]ERROR:[/] Failed to get GitHub auth token: {e}")
+                return None
+        return None
 
     @model_validator(mode="before")
     @classmethod

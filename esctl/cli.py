@@ -7,12 +7,14 @@ from jmespath import compile as compile_jmespath
 from jsonpath_ng import parse as parse_jsonpath
 from rich.logging import RichHandler
 from rich import print
+from rich.prompt import Confirm
 from yamlpath import YAMLPath
 
 from esctl.models.config.base import ESConfig
 from esctl.models.config.gce import GCEESConfig
 from esctl.models.config.http import HTTPESConfig
 from esctl.models.config.kube import KubeESConfig
+from esctl.utils import create_github_issue
 
 from .commands.cat import app as cat_app
 from .commands.cluster import app as cluster_app
@@ -26,7 +28,18 @@ from .commands.shell import app as shell_app
 from .commands._exec import app as exec_app
 from .config import read_config
 
-app = typer.Typer(rich_markup_mode="rich")
+
+class CustomTyper(typer.Typer):
+    def __call__(self, *args, **kwargs):
+        try:
+            super(CustomTyper, self).__call__(*args, **kwargs)
+        except Exception as e:
+            token = cfg.github_auth
+            if token and Confirm.ask("Submit a GitHub issue?", default=True):
+                create_github_issue(e, token)
+            raise
+
+app = CustomTyper(rich_markup_mode="rich")
 setattr(cat_app, "root", app)
 setattr(cluster_app, "root", app)
 setattr(config_app, "root", app)
@@ -236,4 +249,12 @@ def callback(
 
 
 if __name__ == "__main__":
-    app()
+    try:
+        app()
+    # except (typer.Exit, typer.Abort, SystemExit, KeyboardInterrupt):
+    #     raise
+    except Exception as e:
+        token = cfg.github_auth
+        if token and Confirm.ask("Submit a GitHub issue?", default=True):
+            create_github_issue(e, token)
+        raise

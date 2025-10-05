@@ -1,10 +1,20 @@
 import functools
+import importlib.metadata
+import os
+import shlex
 from string import Formatter
 from datetime import timedelta
+import sys
+import traceback
 from typing import Any
 
+import elasticsearch
+import kubernetes
+import requests
+from rich import print
 import typer
 
+from esctl.constants import ISSUE_TEMPLATE
 from esctl.models.enums import Format
 
 
@@ -76,3 +86,38 @@ def strfdelta(tdelta: timedelta):
         if field in desired_fields and field in constants:
             values[field], remainder = divmod(remainder, constants[field])
     return f.format(fmt, **values)
+
+
+def create_github_issue(exception: Exception, token: str) -> None:
+    """Create a GitHub issue for the given exception using the provided token."""
+    url = "https://api.github.com/repos/happn-app/esctl/issues"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    title = f"Exception: {type(exception).__name__}"
+    body = ISSUE_TEMPLATE.substitute(
+        exception_type=type(exception).__name__,
+        exception_message=str(exception),
+        exception_traceback="".join(
+            traceback.format_tb(exception.__traceback__)
+        ),
+        esctl_version=importlib.metadata.version("esctl"),
+        es_version=".".join(str(part) for part in elasticsearch.__version__),
+        k8s_version=kubernetes.__version__,
+        python_version=".".join(map(str, sys.version_info[:3])),
+        os_info=f"{sys.platform} {os.name}",
+        command=shlex.join(sys.argv),
+    )
+    data = {
+        "title": title,
+        "body": body,
+        "labels": ["bug", "auto-generated"],
+    }
+    response = requests.post(url, json=data, headers=headers)
+    if response.status_code == 201:
+        print("[green]GitHub issue created successfully![/]")
+    else:
+        print(f"[red]Failed to create GitHub issue: {response.content}[/]")
+    response.raise_for_status()
+    return
