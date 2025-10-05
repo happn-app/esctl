@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from string import Template
 
+
 def get_esctl_config_path() -> Path:
     return get_esctl_home() / "config.json"
 

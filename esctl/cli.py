@@ -39,6 +39,7 @@ class CustomTyper(typer.Typer):
                 create_github_issue(e, token)
             raise
 
+
 app = CustomTyper(rich_markup_mode="rich")
 setattr(cat_app, "root", app)
 setattr(cluster_app, "root", app)

@@ -99,9 +99,7 @@ def create_github_issue(exception: Exception, token: str) -> None:
     body = ISSUE_TEMPLATE.substitute(
         exception_type=type(exception).__name__,
         exception_message=str(exception),
-        exception_traceback="".join(
-            traceback.format_tb(exception.__traceback__)
-        ),
+        exception_traceback="".join(traceback.format_tb(exception.__traceback__)),
         esctl_version=importlib.metadata.version("esctl"),
         es_version=".".join(str(part) for part in elasticsearch.__version__),
         k8s_version=kubernetes.__version__,
