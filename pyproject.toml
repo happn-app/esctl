@@ -5,7 +5,7 @@ description = "CLI tool to run commands on ES clusters"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-requires-python = ">=3.11"
+requires-python = ">=3.11,<4.0"
 keywords = ["elasticsearch", "cli", "kubernetes", "gce"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -20,18 +20,18 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-  "rich >=14.1.0",
-  "requests >=2.32.5",
-  "typer >=0.19.2",
-  "jmespath >=1.0.1",
-  "elasticsearch >=8.17.1",
-  "pydantic >=2.11.10",
-  "jsonpath-ng >=1.7.0",
-  "yamlpath >=3.8.2",
-  "kubernetes >=34.1.0",
-  "ipython >=9.6.0",
-  "blake3 >=1.0.6",
-  "orjson >=3.11.3",
+  "rich >=14.1.0,<15",
+  "requests >=2.32.5,<3",
+  "typer >=0.19.2,<1",
+  "jmespath >=1.0.1,<2",
+  "elasticsearch >=8.17.1,<9",
+  "pydantic >=2.11.10,<3",
+  "jsonpath-ng >=1.7.0,<2",
+  "yamlpath >=3.8.2,<4",
+  "kubernetes >=34.1.0,<35",
+  "ipython >=9.6.0,<10",
+  "blake3 >=1.0.6,<2",
+  "orjson >=3.11.3,<4",
 ]
 
 [project.scripts]
