@@ -22,7 +22,7 @@ from esctl.utils import get_root_ctx
 
 
 class Config(BaseModel):
-    config_path: Path
+    config_path: Path = Field(exclude=True)
     contexts: dict[
         str,
         Annotated[
@@ -32,6 +32,9 @@ class Config(BaseModel):
     current_context: str
     aliases: dict[str, Any] = {}
     github_auth_command: str | None = None
+    context_types: tuple[str, ...] = Field(
+        exclude=True, default=("http", "kubernetes", "gce")
+    )
 
     def __setattr__(self, name: str, value: Any):
         super().__setattr__(name, value)

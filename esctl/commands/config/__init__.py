@@ -1,10 +1,12 @@
 from rich.console import Console
 from rich.table import Table
+from rich.prompt import Prompt
 import typer
 import typer.completion
 from typing_extensions import Annotated
 
 from esctl.models.enums import Shell
+from esctl.utils import get_root_ctx
 
 from .add_context import app as add_context_app
 from esctl.completions import complete_context
@@ -150,3 +152,64 @@ def completion(
     # typed as a click.Parameter, instead of instanciating one, we pass None
     # It breaks the typing but works perfectly fine in this instance, hence the 'type: ignore'
     typer.completion.show_callback(ctx, None, shell)  # type: ignore
+
+
+@app.command(help="Setup command to guid users through setting up esctl")
+def setup(ctx: typer.Context):
+    print(
+        "This setup wizard will guide you through setting up esctl after installations or updates."
+    )
+    config: Config = get_root_ctx(ctx).obj["config"]
+    if config.github_auth_command is None:
+        github_auth_command = Prompt.ask(
+            "To enable issue reporting, you need a command to authenticate with GitHub. What command do you want to use?",
+            default="gh auth login",
+            choices=[
+                "gh auth login",
+                "echo $GITHUB_TOKEN",
+                "other",
+            ],
+        )
+        if github_auth_command == "other":
+            github_auth_command = Prompt.ask(
+                "What command do you want to use to authenticate with GitHub?",
+            )
+        config.github_auth_command = github_auth_command
+    if len(config.contexts) == 0:
+        print(
+            "To function, esctl needs at least one context to connect to an Elasticsearch cluster."
+        )
+        context_type = Prompt.ask(
+            "What type of context do you want to add?",
+            choices=list(config.context_types),
+            default="http",
+        )
+        match context_type:
+            case "http":
+                config.add_context(
+                    Prompt.ask("Context name", default="default"),
+                    "http",
+                    host=Prompt.ask("Elasticsearch host", default="localhost"),
+                    port=int(Prompt.ask("Elasticsearch port", default="9200")),
+                    username=Prompt.ask("Username", default=""),
+                    password=Prompt.ask("Password", default="", password=True),
+                )
+            case "kubernetes":
+                config.add_context(
+                    Prompt.ask("Context name", default="default"),
+                    "kubernetes",
+                    kube_context=Prompt.ask("Kube context", default=""),
+                    kube_namespace=Prompt.ask("Kube namespace", default="default"),
+                    es_name=Prompt.ask(
+                        "Elasticsearch service name", default="elasticsearch"
+                    ),
+                )
+            case "gce":
+                config.add_context(
+                    Prompt.ask("Context name", default="default"),
+                    "gce",
+                    project_id=Prompt.ask("GCP Project ID"),
+                    zone=Prompt.ask("GCP Zone", default="us-central1-a"),
+                    instance_name=Prompt.ask("GCE Instance Name"),
+                )
+    print("Setup complete! You can now use esctl.")

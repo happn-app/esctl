@@ -1,13 +1,15 @@
 from typing_extensions import Annotated
 import typer
 
-from esctl.config import read_config
+from esctl.config import Config
+from esctl.utils import get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
 
 
 @app.command(help="Add an HTTP context")
 def http(
+    ctx: typer.Context,
     context_name: Annotated[str, typer.Argument(help="Name of the context")],
     host: Annotated[
         str, typer.Option("--host", "-h", help="Hostname of the cluster")
@@ -33,12 +35,13 @@ def http(
                 "--password",
                 "-p",
                 help="Password of the user to connect as, using basic auth",
+                envvar="ESCTL_PASSWORD",
             ),
         ]
         | None
     ) = None,
 ):
-    config = read_config()
+    config = get_root_ctx(ctx).obj["config"]
     config.add_context(
         context_name,
         "http",
@@ -52,6 +55,7 @@ def http(
 
 @app.command(help="Add a Kubernetes context")
 def kubernetes(
+    ctx: typer.Context,
     context_name: Annotated[str, typer.Argument(help="Name of the context")],
     namespace: Annotated[
         str,
@@ -84,7 +88,7 @@ def kubernetes(
         | None
     ) = None,
 ):
-    config = read_config()
+    config = get_root_ctx(ctx).obj["config"]
     config.add_context(
         context_name,
         "kubernetes",
@@ -93,3 +97,58 @@ def kubernetes(
         es_name=es_name,
     )
     typer.echo(f"Context {context_name} added for Kubernetes cluster in {namespace}")
+
+
+@app.command(help="Add a GCE context")
+def gce(
+    ctx: typer.Context,
+    context_name: Annotated[str, typer.Argument(help="Name of the context")],
+    project: Annotated[str, typer.Option("--project", "-p", help="GCP Project ID")],
+    zone: Annotated[
+        str, typer.Option("--zone", "-z", help="GCP Zone of the ES cluster")
+    ],
+    instance: Annotated[
+        str, typer.Option("--instance", "-i", help="GCE Instance name of the ES node")
+    ],
+    port: Annotated[
+        int, typer.Option("--port", "-P", help="Port the ES master listens on")
+    ] = 9200,
+    target_port: Annotated[
+        int,
+        typer.Option(
+            "--target-port",
+            "-p",
+            help="Local port to use for the SSH tunnel to the ES node",
+        ),
+    ] = 9200,
+    username: Annotated[
+        str,
+        typer.Option(
+            "--username",
+            "-u",
+            help="Username of the user to connect as, using basic auth",
+        ),
+    ] = "",
+    password: Annotated[
+        str,
+        typer.Option(
+            "--password",
+            "-p",
+            help="Password of the user to connect as, using basic auth",
+            envvar="ESCTL_PASSWORD",
+        ),
+    ] = "",
+):
+    config: Config = get_root_ctx(ctx).obj["config"]
+    config.add_context(
+        context_name,
+        "gce",
+        project_id=project,
+        zone=zone,
+        vm_name=instance,
+        port=port,
+        target_port=target_port,
+        username=username,
+        password=password,
+    )
+    typer.echo(f"Context {context_name} added for GCE instance {instance}")
