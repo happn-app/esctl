@@ -35,3 +35,9 @@ If you already have it installed and want to upgrade:
 ```sh
 pipx install . --force
 ```
+
+Or if you're not in esctl's source directory:
+
+```sh
+pipx upgrade esctl
+```
