@@ -1,27 +1,48 @@
-[tool.poetry]
+[project]
 name = "esctl"
 version = "1.11.0"
 description = "CLI tool to run commands on ES clusters"
-authors = ["Simon Bordeyne <simon.bordeyne@happn.fr>"]
 readme = "README.md"
-scripts = { "esctl" = "esctl.cli:app" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+keywords = ["elasticsearch", "cli", "kubernetes", "gce"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
+]
+dependencies = [
+  "rich >=14.1.0",
+  "requests >=2.32.5",
+  "typer >=0.19.2",
+  "jmespath >=1.0.1",
+  "elasticsearch >=8.17.1",
+  "pydantic >=2.11.10",
+  "jsonpath-ng >=1.7.0",
+  "yamlpath >=3.8.2",
+  "kubernetes >=34.1.0",
+  "ipython >=9.6.0",
+  "blake3 >=1.0.6",
+  "orjson >=3.11.3",
+]
+
+[project.scripts]
+esctl = "esctl.cli:app"
+
+[[project.authors]]
+name = "Simon Bordeyne"
+email = "simon.bordeyne@happn.fr"
+
+[tool.poetry]
 package-mode = true
-
-[tool.poetry.dependencies]
-python = "^3.11"
-rich = "^14.1.0"
-requests = "^2.32.4"
-typer = "^0.19.2"
-jmespath = "^1.0.1"
-elasticsearch = "^8.17.1"
-pydantic = "^2.10.6"
-jsonpath-ng = "^1.7.0"
-yamlpath = "^3.8.2"
-kubernetes = "^34.1.0"
-ipython = "^9.5.0"
-blake3 = "^1.0.6"
-orjson = "^3.11.3"
-
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.13.3"
