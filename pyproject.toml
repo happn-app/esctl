@@ -45,7 +45,7 @@ email = "simon.bordeyne@happn.fr"
 package-mode = true
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.13.3"
+ruff = "^0.14.0"
 
 [build-system]
 requires = ["poetry-core"]
