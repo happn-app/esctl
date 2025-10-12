@@ -1,0 +1,69 @@
+---
+site_name: ESCTL
+
+theme:
+  features:
+    - search.suggest
+    - search.highlight
+  name: material
+
+nav:
+  - Home: README.md
+  - Installation: installation.md
+  - Configuration: configuration.md
+  - Commands: cli.md
+
+remote_branch: master
+remote_name: origin
+
+plugins:
+  - search
+  - tags
+  - techdocs-core
+  - awesome-nav
+  - mkdocs-typer2:
+      pretty: true
+  - mike:
+      alias_type: redirect
+      version_selector: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.arithmatex
+  - pymdownx.b64
+  - pymdownx.betterem
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.definition
+  - pymdownx.blocks.details
+  - pymdownx.blocks.html
+  - pymdownx.blocks.tab
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.escapeall
+  - pymdownx.extra
+  - pymdownx.highlight
+  - pymdownx.keys
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.pathconverter
+  - pymdownx.progressbar
+  - pymdownx.saneheaders
+  - pymdownx.smartsymbols
+  - pymdownx.striphtml
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - pymdownx.tilde
+  - toc:
+      permalink: "#"
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption

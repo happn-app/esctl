@@ -1,0 +1,79 @@
+name: Lint Python
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - ./.github/workflows/lint-python.yaml
+      - '**/*.py'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - ./.github/workflows/lint-python.yaml
+      - '**/*.py'
+
+
+env:
+  PYTHON_VERSION: '3.11'
+  POETRY_VERSION: 2.2.1
+
+jobs:
+  formatting:
+    name: ruff format --check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up poetry
+        uses: abatilo/actions-poetry@v4.0.0
+        with:
+          poetry-version: ${{ env.POETRY_VERSION }}
+
+      - uses: actions/cache@v4.3.0
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Check formatting
+        run: poetry run ruff format --check
+
+  lint:
+    name: ruff check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up poetry
+        uses: abatilo/actions-poetry@v4.0.0
+        with:
+          poetry-version: ${{ env.POETRY_VERSION }}
+
+      - uses: actions/cache@v4.3.0
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Lint code
+        run: poetry run ruff check

@@ -1,0 +1,29 @@
+name: Check PR Labels
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+
+jobs:
+  check_labels:
+    name: Check labels
+    runs-on: [self-hosted, infra]
+    steps:
+      - name: Require PR to have at least one label with prefix "team/"
+        uses: docker://agilepathway/pull-request-label-checker:latest
+        with:
+          prefix_mode: true
+          one_of: team/
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Require PR to have at least one label with prefix "team/"
+        uses: docker://agilepathway/pull-request-label-checker:latest
+        with:
+          prefix_mode: true
+          one_of: team/
+          repo_token: ${{ secrets.GITHUB_TOKEN }}

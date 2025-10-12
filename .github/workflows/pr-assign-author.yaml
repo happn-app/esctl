@@ -1,0 +1,23 @@
+name: Auto assign PR author
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+
+permissions:
+  pull-requests: write
+  contents: read
+  issues: write
+
+jobs:
+  assign_author:
+    name: Assign PR author
+    runs-on: [self-hosted, infra]
+    steps:
+      - name: Assign PR author
+        uses: pozil/auto-assign-issue@v2.2.0
+        with:
+          assignees: ${{ github.actor }}
+          allowSelfAssign: true
