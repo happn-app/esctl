@@ -2,4 +2,4 @@ nav:
   - README.md
   - installation.md
   - configuration.md
-  - "*"
+  - '*'

@@ -16,7 +16,7 @@ name: Lint Markdown
 
 jobs:
   lint-md:
-    runs-on: [self-hosted, infra]
+    runs-on: ubuntu-latest
     name: markdownlint-cli2
     steps:
       - name: Checkout code

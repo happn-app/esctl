@@ -25,7 +25,13 @@ def ttl(
     method: HTTPMethod = typer.Argument(help="HTTP method, e.g. GET, HEAD"),
     target: str = typer.Argument(help="API endpoint, e.g. /_cluster/health"),
     ttl: int = typer.Argument(help="TTL in seconds, e.g. 300 for 5 minutes"),
-    match_all: Annotated[bool, typer.Option("--match-all/--no-match-all", help="Should the pattern match query params and fragments as well")] = False,
+    match_all: Annotated[
+        bool,
+        typer.Option(
+            "--match-all/--no-match-all",
+            help="Should the pattern match query params and fragments as well",
+        ),
+    ] = False,
 ):
     home = get_esctl_home()
     ttl_path = home / "ttl.json"
@@ -33,10 +39,12 @@ def ttl(
     ttl_path.touch(exist_ok=True)
     ttls = orjson.loads(ttl_path.read_bytes() or b"{}")
     qp_pattern = r"(\?.*)?(#.*)?" if match_all else ""
-    pattern = fr"^{method.upper()} {target}{qp_pattern}$"
+    pattern = rf"^{method.upper()} {target}{qp_pattern}$"
     original = ttls.get(pattern)
     if original is not None:
-        typer.echo(f"Overriding existing TTL of {original} seconds for pattern '{pattern}'")
+        typer.echo(
+            f"Overriding existing TTL of {original} seconds for pattern '{pattern}'"
+        )
     ttls[pattern] = ttl
     ttl_path.write_bytes(orjson.dumps(ttls, option=orjson.OPT_INDENT_2))
     typer.echo(f"Set TTL for pattern '{pattern}' to {ttl} seconds")

@@ -1,8 +1,5 @@
----
 extends: default
-
 ignore-from-file: [.gitignore, .yamlignore]
-
 yaml-files: ['**/*.yml', '**/*.yaml', .yamllint]
 
 rules:

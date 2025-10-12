@@ -14,7 +14,7 @@ permissions:
 jobs:
   assign_author:
     name: Assign PR author
-    runs-on: [self-hosted, infra]
+    runs-on: ubuntu-latest
     steps:
       - name: Assign PR author
         uses: pozil/auto-assign-issue@v2.2.0

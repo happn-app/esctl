@@ -12,7 +12,7 @@ on:
 jobs:
   check_labels:
     name: Check labels
-    runs-on: [self-hosted, infra]
+    runs-on: ubuntu-latest
     steps:
       - name: Require PR to have at least one label with prefix "team/"
         uses: docker://agilepathway/pull-request-label-checker:latest
@@ -20,7 +20,6 @@ jobs:
           prefix_mode: true
           one_of: team/
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Require PR to have at least one label with prefix "component/"
         uses: docker://agilepathway/pull-request-label-checker:latest
         with:

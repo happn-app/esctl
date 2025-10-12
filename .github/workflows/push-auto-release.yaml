@@ -10,7 +10,7 @@ on:
 
 jobs:
   release:
-    runs-on: [self-hosted, infra]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5

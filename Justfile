@@ -11,7 +11,7 @@ mdfmt:
 
 [group('format')]
 yamlfmt:
-  yamlfix -c .yamlfix.toml .
+  yamlfix -c .yamlfix.toml . --exclude '.venv/**/*'
 
 [group('format')]
 fmt: pyfmt mdfmt yamlfmt
