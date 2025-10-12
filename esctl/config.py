@@ -1,7 +1,6 @@
 import errno
 import functools
 import os
-from pathlib import Path
 import shlex
 import shutil
 import subprocess
@@ -22,7 +21,6 @@ from esctl.utils import get_root_ctx
 
 
 class Config(BaseModel):
-    config_path: Path = Field(exclude=True)
     contexts: dict[
         str,
         Annotated[
@@ -123,7 +121,7 @@ def read_config() -> Config:
                 edit_config()
                 return read_config()
             sys.exit(errno.ENOEXEC)
-    return Config(config_path=config_path, contexts={}, current_context="")
+    return Config(contexts={}, current_context="")
 
 
 def save_config(config: Config):

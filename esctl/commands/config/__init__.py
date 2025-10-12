@@ -9,6 +9,7 @@ from esctl.models.enums import Shell
 from esctl.utils import get_root_ctx
 
 from .add_context import app as add_context_app
+from .cache import app as cache_app
 from esctl.completions import complete_context
 from esctl.config import Config, edit_config
 
@@ -17,6 +18,11 @@ app.add_typer(
     add_context_app,
     name="add-context",
     help="Add an ElasticSearch server to the esctl configuration file",
+)
+app.add_typer(
+    cache_app,
+    name="cache",
+    help="Manage the local cache for the current context",
 )
 
 
