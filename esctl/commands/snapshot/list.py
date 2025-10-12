@@ -64,9 +64,10 @@ def format_snapshot_for_text(snapshot: dict) -> dict:
 
 
 @app.command(
+    name="list",
     help="Lists snapshots in a repository.",
 )
-def list(
+def _list(
     ctx: typer.Context,
     repository: Annotated[
         str, typer.Argument(autocompletion=complete_repository)
