@@ -2,7 +2,26 @@ name: Lint YAML files
 
 on:
   pull_request:
-    paths: ['**/*.yaml', '*.yaml', '**/*.yml', '*.yml']
+    paths:
+      - '**/*.yaml'
+      - '*.yaml'
+      - '**/*.yml'
+      - '*.yml'
+      - .yamlignore
+      - .yamllint
+      - .gitignore
+
+  push:
+    branches:
+      - master
+    paths:
+      - '**/*.yaml'
+      - '*.yaml'
+      - '**/*.yml'
+      - '*.yml'
+      - .yamlignore
+      - .yamllint
+      - .gitignore
 
 jobs:
   yamllint:

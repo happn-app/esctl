@@ -3,6 +3,14 @@ on:
     paths:
       - '**/*.md'
       - .github/workflows/lint-markdown.yaml
+      - .markdownlint-cli2.jsonc
+  push:
+    branches:
+      - master
+    paths:
+      - ./.github/workflows/lint-markdown.yaml
+      - '**/*.md'
+      - .markdownlint-cli2.jsonc
 
 name: Lint Markdown
 
