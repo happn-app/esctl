@@ -21,9 +21,9 @@ jobs:
           one_of: team/
           repo_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Require PR to have at least one label with prefix "team/"
+      - name: Require PR to have at least one label with prefix "component/"
         uses: docker://agilepathway/pull-request-label-checker:latest
         with:
           prefix_mode: true
-          one_of: team/
+          any_of: component/
           repo_token: ${{ secrets.GITHUB_TOKEN }}
