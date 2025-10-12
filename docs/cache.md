@@ -33,3 +33,12 @@ regular expression is usable as a key in the `ttl.json` configuration file.
 
 The TTL is used only when the cached response is set in the database. In other words, changing the TTL
 value in the `ttl.json` configuration file will only take effect after the current cache expires.
+
+## Cache management
+
+To manage the cache, esctl comes with a subcommand: `esctl config cache`, which can help purge the cache
+if it becomes problematic.
+
+Purging the cache can be done manually for a context by running `esctl --context <context-name> config cache purge`
+
+You can also set the TTL for an API call with `esctl config cache ttl <METHOD> <TARGET> <TTL> [--match-all/--no-match-all]`
