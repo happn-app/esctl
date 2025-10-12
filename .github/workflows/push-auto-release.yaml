@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - ./.github/workflows/push-auto-release.yaml
+      - .github/workflows/push-auto-release.yaml
       - pyproject.toml
   workflow_dispatch: {}
 

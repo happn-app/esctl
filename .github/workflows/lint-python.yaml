@@ -5,14 +5,14 @@ on:
     branches:
       - master
     paths:
-      - ./.github/workflows/lint-python.yaml
+      - .github/workflows/lint-python.yaml
       - '**/*.py'
       - pyproject.toml
   pull_request:
     branches:
       - master
     paths:
-      - ./.github/workflows/lint-python.yaml
+      - .github/workflows/lint-python.yaml
       - '**/*.py'
       - pyproject.toml
 
