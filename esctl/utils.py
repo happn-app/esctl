@@ -110,7 +110,7 @@ def create_github_issue(exception: Exception, token: str) -> None:
     data = {
         "title": title,
         "body": body,
-        "labels": ["bug", "auto-generated"],
+        "labels": ["issue/bug", "lifecycle/automated"],
     }
     response = requests.post(url, json=data, headers=headers)
     if response.status_code == 201:
