@@ -56,9 +56,9 @@ jobs:
               done
               return 0
           }
-          version=$(yq -r '.tool.poetry.version' pyproject.toml)
+          version=$(yq -r '.project.version' pyproject.toml)
           latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) | cut -c2-)
-          changes=$(git log v$latest_tag..HEAD --pretty=format:'- %s (%an)' | sed 's/-/  -/')
+          changes=$(git log v$latest_tag..HEAD --pretty=format:'- %s (%an)' | sed 's/-/  -/' | sed 's|\n|\n\n|g')
           echo "Current version: $version"
           echo "Latest tag: $latest_tag"
           echo "version=$version" >> $GITHUB_OUTPUT
