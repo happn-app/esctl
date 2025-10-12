@@ -100,7 +100,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b stable
-          git merge --squash --commit --log -m "Release version v${{ steps.check.outputs.version }}" master
+          git merge --squash --log -m "Release version v${{ steps.check.outputs.version }}" master
           git push origin stable
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
