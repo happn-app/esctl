@@ -1,0 +1,11 @@
+[project]
+name = "elasticsearch7_proxy"
+version = "1.0.0"
+description = "Proxy wrapper for elasticsearch-py 7.x client"
+dependencies = [
+  "elasticsearch7>=7.17.12",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

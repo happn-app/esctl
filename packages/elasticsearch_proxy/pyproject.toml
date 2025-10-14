@@ -1,0 +1,18 @@
+[project]
+name = "elasticsearch_proxy"
+version = "1.0.0"
+description = "Proxy wrapper for elasticsearch clients (v7, v8, v9)"
+dependencies = [
+  "elasticsearch7_proxy",
+  "elasticsearch8_proxy",
+  "elasticsearch9_proxy",
+]
+
+[tool.uv.sources]
+elasticsearch7_proxy = { workspace = true }
+elasticsearch8_proxy = { workspace = true }
+elasticsearch9_proxy = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

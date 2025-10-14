@@ -1,0 +1,11 @@
+[project]
+name = "elasticsearch8_proxy"
+version = "1.0.0"
+description = "Proxy wrapper for elasticsearch-py 8.x client"
+dependencies = [
+  "elasticsearch8>=8.19.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
