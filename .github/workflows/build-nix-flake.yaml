@@ -1,0 +1,45 @@
+name: Build flake
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - flake.nix
+      - flake.lock
+      - pyproject.toml
+  pull_request:
+    branches:
+      - master
+    paths:
+      - flake.nix
+      - flake.lock
+      - pyproject.toml
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup magic nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          use-flakehub: false
+
+      - name: Build esctl
+        run: |
+          nix build .
