@@ -1,6 +1,6 @@
 [project]
 name = "esctl"
-version = "1.12.2"
+version = "1.12.4"
 description = "CLI tool to run commands on ES clusters"
 readme = "README.md"
 license = "Apache-2.0"
