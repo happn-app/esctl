@@ -93,14 +93,3 @@ jobs:
             ${{ steps.check.outputs.changes }}
           draft: false
           prerelease: false
-
-      - name: Push squashed commits to 'stable' branch
-        if: steps.check.outputs.skip == '0'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b stable
-          git merge --squash --log -m "Release version v${{ steps.check.outputs.version }}" master
-          git push origin stable
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
