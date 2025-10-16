@@ -37,15 +37,27 @@ class CustomTyper(typer.Typer):
             raise
         except elasticsearch7.ElasticsearchException as e:
             if token and Confirm.ask("Submit a GitHub issue?", default=True):
-                create_github_issue(e, token, ".".join(str(part) for part in elasticsearch7.__version__))
+                create_github_issue(
+                    e, token, ".".join(str(part) for part in elasticsearch7.__version__)
+                )
             raise
-        except tuple(getattr(elasticsearch8.exceptions, s) for s in elasticsearch8.exceptions.__all__) as e:
+        except tuple(
+            getattr(elasticsearch8.exceptions, s)
+            for s in elasticsearch8.exceptions.__all__
+        ) as e:
             if token and Confirm.ask("Submit a GitHub issue?", default=True):
-                create_github_issue(e, token, ".".join(str(part) for part in elasticsearch8.__version__))
+                create_github_issue(
+                    e, token, ".".join(str(part) for part in elasticsearch8.__version__)
+                )
             raise
-        except tuple(getattr(elasticsearch9.exceptions, s) for s in elasticsearch9.exceptions.__all__) as e:
+        except tuple(
+            getattr(elasticsearch9.exceptions, s)
+            for s in elasticsearch9.exceptions.__all__
+        ) as e:
             if token and Confirm.ask("Submit a GitHub issue?", default=True):
-                create_github_issue(e, token, ".".join(str(part) for part in elasticsearch9.__version__))
+                create_github_issue(
+                    e, token, ".".join(str(part) for part in elasticsearch9.__version__)
+                )
             raise
         except Exception as e:
             if token and Confirm.ask("Submit a GitHub issue?", default=True):
