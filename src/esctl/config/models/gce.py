@@ -6,7 +6,7 @@ import time
 from typing import Literal
 
 from .base import ESConfig
-from transport import Elasticsearch, HTTPClientFactory
+from esctl.transport import Elasticsearch, HTTPClientFactory
 
 
 _GCE_SSH_PROCESS = None

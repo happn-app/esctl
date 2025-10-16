@@ -29,7 +29,6 @@ dependencies = [
     "requests >=2.32.5,<3",
     "typer >=0.17,<1",
     "jmespath >=1.0.1,<2",
-    "elasticsearch >=8.17.1,<9",
     "pydantic >=2.11.0",
     "jsonpath-ng >=1.7.0,<2",
     "yamlpath >=3.8.2,<4",
@@ -37,9 +36,11 @@ dependencies = [
     "ipython >=9.5.0,<10",
     "blake3 >=1.0.6,<2",
     "orjson >=3.11.3,<4",
-    "constants",
-    "transport",
-    "config",
+    "elasticsearch7",
+    "elasticsearch8",
+    "elasticsearch9",
+    "kubernetes >=34.1.0,<35",
+    "ruamel.yaml >=0.17.5",
 ]
 license-files = ["LICENSE"]
 
@@ -65,14 +66,6 @@ default-groups = [
 ]
 required-version = ">=0.9.2,<1.0.0"
 add-bounds = "major"
-
-[tool.uv.workspace]
-members = ["packages/*"]
-
-[tool.uv.sources]
-constants = { workspace = true }
-transport = { workspace = true }
-config = { workspace = true }
 
 [build-system]
 requires = ["uv_build>=0.9.2,<0.10.0"]

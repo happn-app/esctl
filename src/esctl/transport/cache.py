@@ -8,7 +8,7 @@ from elastic_transport import ApiResponseMeta
 from elastic_transport._node._base import NodeApiResponse
 import orjson
 
-from constants import ESCTL_CACHE_DB_PATH, ESCTL_TTL_CONFIG_PATH
+from esctl.constants import ESCTL_CACHE_DB_PATH, ESCTL_TTL_CONFIG_PATH
 
 
 US = "\x1f"  # unit separator; never appears in JSON

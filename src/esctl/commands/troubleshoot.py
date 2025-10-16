@@ -4,7 +4,7 @@ from rich.prompt import Confirm
 from rich.table import Table
 import typer
 
-from config import Config
+from esctl.config import Config
 
 
 app = typer.Typer(rich_markup_mode="rich")

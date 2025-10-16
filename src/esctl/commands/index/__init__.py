@@ -1,10 +1,11 @@
 import re
 from typing import Annotated, TypedDict
-from elasticsearch import BadRequestError
+import elasticsearch8
+import elasticsearch9
 import typer
 
-from config import Config
-from esctl.models.enums import Format
+from esctl.config import Config
+from esctl.enums import Format
 from esctl.output import pretty_print
 from esctl.selectors import select_from_context
 from esctl.utils import get_root_ctx
@@ -117,7 +118,7 @@ def create(
             format=Format.json,
             pretty=get_root_ctx(ctx).obj.get("pretty", True),
         )
-    except BadRequestError as e:
+    except (elasticsearch8.BadRequestError, elasticsearch9.BadRequestError) as e:
         typer.secho(
             f"Error creating index: {e.info['error']['reason']}", fg=typer.colors.RED
         )

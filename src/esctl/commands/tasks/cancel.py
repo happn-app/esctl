@@ -1,6 +1,6 @@
 import typer
 
-from config import Config
+from esctl.config import Config
 from esctl.output import pretty_print
 from esctl.params import (
     NodeOption,

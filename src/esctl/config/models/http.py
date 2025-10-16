@@ -1,6 +1,6 @@
 from typing import Literal
 
-from transport import Elasticsearch, HTTPClientFactory
+from esctl.transport import Elasticsearch, HTTPClientFactory
 
 from .base import ESConfig
 

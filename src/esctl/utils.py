@@ -8,15 +8,14 @@ import sys
 import traceback
 from typing import Any
 
-import elasticsearch
 import kubernetes
 import requests
 from rich import print
 import typer
 
-from constants import ISSUE_TEMPLATE
-from config.utils import get_root_ctx
-from esctl.models.enums import Format
+from esctl.constants import ISSUE_TEMPLATE
+from esctl.config.utils import get_root_ctx
+from esctl.enums import Format
 
 
 @functools.lru_cache()
@@ -78,7 +77,7 @@ def strfdelta(tdelta: timedelta):
     return f.format(fmt, **values)
 
 
-def create_github_issue(exception: Exception, token: str) -> None:
+def create_github_issue(exception: Exception, token: str, es_version: str) -> None:
     """Create a GitHub issue for the given exception using the provided token."""
     url = "https://api.github.com/repos/happn-app/esctl/issues"
     headers = {
@@ -91,7 +90,7 @@ def create_github_issue(exception: Exception, token: str) -> None:
         exception_message=str(exception),
         exception_traceback="".join(traceback.format_tb(exception.__traceback__)),
         esctl_version=importlib.metadata.version("esctl"),
-        es_version=".".join(str(part) for part in elasticsearch.__version__),
+        es_version=es_version,
         k8s_version=kubernetes.__version__,
         python_version=".".join(map(str, sys.version_info[:3])),
         os_info=f"{sys.platform} {os.name}",

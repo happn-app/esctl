@@ -2,6 +2,9 @@ import importlib
 import logging
 from typing import Annotated, Any, Callable
 
+import elasticsearch7
+import elasticsearch8
+import elasticsearch9
 import typer
 from jmespath import compile as compile_jmespath
 from jsonpath_ng import parse as parse_jsonpath
@@ -22,17 +25,31 @@ from .commands.troubleshoot import app as troubleshoot_app
 from .commands.snapshot import app as snapshot_app
 from .commands.shell import app as shell_app
 from .commands._exec import app as exec_app
-from config import Config, ESConfigType
+from esctl.config import Config, ESConfigType
 
 
 class CustomTyper(typer.Typer):
     def __call__(self, *args, **kwargs):
+        token = cfg.github_auth
         try:
             super(CustomTyper, self).__call__(*args, **kwargs)
-        except Exception as e:
-            token = cfg.github_auth
+        except (KeyboardInterrupt, typer.Exit):
+            raise
+        except elasticsearch7.ElasticsearchException as e:
             if token and Confirm.ask("Submit a GitHub issue?", default=True):
-                create_github_issue(e, token)
+                create_github_issue(e, token, ".".join(str(part) for part in elasticsearch7.__version__))
+            raise
+        except tuple(getattr(elasticsearch8.exceptions, s) for s in elasticsearch8.exceptions.__all__) as e:
+            if token and Confirm.ask("Submit a GitHub issue?", default=True):
+                create_github_issue(e, token, ".".join(str(part) for part in elasticsearch8.__version__))
+            raise
+        except tuple(getattr(elasticsearch9.exceptions, s) for s in elasticsearch9.exceptions.__all__) as e:
+            if token and Confirm.ask("Submit a GitHub issue?", default=True):
+                create_github_issue(e, token, ".".join(str(part) for part in elasticsearch9.__version__))
+            raise
+        except Exception as e:
+            if token and Confirm.ask("Submit a GitHub issue?", default=True):
+                create_github_issue(e, token, "unknown")
             raise
 
 
@@ -258,5 +275,5 @@ if __name__ == "__main__":
     except Exception as e:
         token = cfg.github_auth
         if token and Confirm.ask("Submit a GitHub issue?", default=True):
-            create_github_issue(e, token)
+            create_github_issue(e, token, "unknown")
         raise

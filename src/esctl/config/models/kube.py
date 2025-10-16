@@ -1,6 +1,6 @@
 from typing import Literal
 
-from transport import Elasticsearch, KubeClientFactory
+from esctl.transport import Elasticsearch, KubeClientFactory
 
 from .base import ESConfig
 

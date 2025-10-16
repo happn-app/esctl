@@ -24,7 +24,27 @@ You can also run the app directly:
 nix run 'git+ssh://git@github.com/happn-app/esctl' -- --help
 ```
 
+### With uv
+
+```sh
+uv tool install .
+```
+
+If you already have it installed and want to upgrade:
+
+```sh
+uv tool install . --force
+```
+
+Or if you're not in esctl's source directory:
+
+```sh
+uv tool upgrade esctl
+```
+
 ### With pipx
+
+#### From source
 
 ```sh
 pipx install .
@@ -40,4 +60,10 @@ Or if you're not in esctl's source directory:
 
 ```sh
 pipx upgrade esctl
+```
+
+#### From built wheels
+
+```sh
+pipx install https://github.com/happn-app/esctl/releases/latest/esctl-latest.whl
 ```

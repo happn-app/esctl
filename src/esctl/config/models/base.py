@@ -1,4 +1,4 @@
-from transport import Elasticsearch
+from esctl.transport import Elasticsearch
 from pydantic import BaseModel, Field
 
 

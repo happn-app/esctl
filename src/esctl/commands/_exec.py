@@ -7,8 +7,8 @@ from rich import print
 from pathlib import Path
 import json
 
-from transport import Cache
-from config import Config
+from esctl.transport import Cache
+from esctl.config import Config
 
 
 app = typer.Typer(rich_markup_mode="rich")

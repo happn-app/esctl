@@ -12,11 +12,11 @@ from rich import print
 from rich.prompt import Confirm
 import typer
 
-from constants import ESCTL_CONFIG_PATH
-from config.models.http import HTTPESConfig
-from config.models.kube import KubeESConfig
-from config.models.gce import GCEESConfig
-from transport import Elasticsearch
+from esctl.constants import ESCTL_CONFIG_PATH
+from esctl.config.models.http import HTTPESConfig
+from esctl.config.models.kube import KubeESConfig
+from esctl.config.models.gce import GCEESConfig
+from esctl.transport import Elasticsearch
 
 from .utils import get_root_ctx
 

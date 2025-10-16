@@ -1,8 +1,8 @@
 import typer
 from rich.prompt import Confirm
 
-from config import Config
-from esctl.models.enums import Format
+from esctl.config import Config
+from esctl.enums import Format
 from esctl.output import pretty_print
 from esctl.params import (
     RerouteDryRunOption,

@@ -5,13 +5,13 @@ import typer
 import typer.completion
 from typing_extensions import Annotated
 
-from esctl.models.enums import Shell
+from esctl.enums import Shell
 from esctl.utils import get_root_ctx
 
 from .add_context import app as add_context_app
 from .cache import app as cache_app
 from esctl.completions import complete_context
-from config import Config
+from esctl.config import Config
 
 app = typer.Typer(rich_markup_mode="rich")
 app.add_typer(

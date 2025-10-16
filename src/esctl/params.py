@@ -15,7 +15,7 @@ from esctl.completions import (
     complete_repository,
     complete_snapshot_name,
 )
-from esctl.models.enums import ByteUnit, Format, TimeUnit
+from esctl.enums import ByteUnit, Format, TimeUnit
 
 IncludeUnloadedSegmentsOption = Annotated[
     bool,

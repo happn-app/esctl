@@ -4,7 +4,7 @@ import warnings
 
 import typer
 
-from config import Config
+from .config import Config
 
 
 def complete_column(
