@@ -10,9 +10,9 @@ from ruamel.yaml import YAML
 from pathlib import Path
 import json
 
-from esctl.cache import Cache
-from esctl.config import get_current_context_from_ctx, read_config
-from esctl.constants import get_esctl_home
+from transport import Cache
+from config import Config as EsctlConfig
+from constants import ESCTL_HOME
 
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -62,12 +62,12 @@ def rich_to_ansi(markup: str) -> str:
 def shell(
     ctx: typer.Context,
 ):
-    conf = read_config()
-    context_name = get_current_context_from_ctx(ctx)
+    conf = EsctlConfig.load()
+    context_name = conf.get_current_context_name(ctx)
     if conf.contexts[context_name].type == "gce":
         conf.contexts[context_name].start_ssh_tunnel()  # type: ignore
     client = conf.contexts[context_name].client
-    ipython_dir = get_esctl_home() / "ipython" / context_name
+    ipython_dir = ESCTL_HOME / "ipython" / context_name
     if not ipython_dir.exists():
         ipython_dir.mkdir(parents=True, exist_ok=True)
     working_directory = ipython_dir / "working_dir"

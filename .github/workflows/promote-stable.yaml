@@ -55,7 +55,7 @@ jobs:
       - name: Push release commit to stable branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+        run: |-
           git fetch origin stable || true
           git checkout -B stable
           git push origin stable

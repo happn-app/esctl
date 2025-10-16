@@ -1,6 +1,6 @@
 import typer
 
-from esctl.config import get_client_from_ctx
+from config import Config
 from esctl.output import pretty_print
 from esctl.params import (
     NodeOption,
@@ -31,7 +31,7 @@ def cancel(
         "actions": actions,
         "nodes": nodes,
     }
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     response = client.tasks.cancel(**params).raw
     response = select_from_context(ctx, response)
     pretty_print(

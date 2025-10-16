@@ -1,7 +1,7 @@
 from typing_extensions import Annotated
 import typer
 
-from esctl.config import Config
+from config import Config
 from esctl.utils import get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")

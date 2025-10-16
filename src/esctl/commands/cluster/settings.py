@@ -4,7 +4,7 @@ import typer
 from rich import print
 from rich.prompt import Confirm
 
-from esctl.config import get_client_from_ctx
+from config import Config
 from esctl.models.enums import Format
 from esctl.output import pretty_print
 from esctl.params import (
@@ -28,7 +28,7 @@ def settings(
     with_defaults: bool = True,
     filter: str | None = None,
 ):
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     if not settings_key and not settings_value:
         # Get the current settings, without the defaults
         response = client.cluster.get_settings(

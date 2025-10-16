@@ -7,8 +7,8 @@ from rich import print
 from pathlib import Path
 import json
 
-from esctl.cache import Cache
-from esctl.config import get_current_context_from_ctx, read_config
+from transport import Cache
+from config import Config
 
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -27,8 +27,8 @@ def execute(
         ),
     ] = "-",
 ):
-    conf = read_config()
-    context_name = get_current_context_from_ctx(ctx)
+    conf = Config.load()
+    context_name = conf.get_current_context_name(ctx)
     if conf.contexts[context_name].type == "gce":
         conf.contexts[context_name].start_ssh_tunnel()  # type: ignore
     client = conf.contexts[context_name].client

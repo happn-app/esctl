@@ -2,13 +2,14 @@ import re
 import sqlite3
 import time
 from typing import Any, Mapping, Optional
-from elastic_transport import ApiResponseMeta
-import orjson
+
 import blake3
+from elastic_transport import ApiResponseMeta
 from elastic_transport._node._base import NodeApiResponse
+import orjson
 
+from constants import ESCTL_CACHE_DB_PATH, ESCTL_TTL_CONFIG_PATH
 
-from esctl.constants import get_esctl_home
 
 US = "\x1f"  # unit separator; never appears in JSON
 
@@ -68,7 +69,7 @@ class Cache:
     @staticmethod
     def get_ttl(key: str) -> int:
         """Return TTL in seconds for a given cache key."""
-        cache_config_path = get_esctl_home() / "ttl.json"
+        cache_config_path = ESCTL_TTL_CONFIG_PATH
         if not cache_config_path.exists():
             return 300  # default 5 minutes
         cache_config = orjson.loads(cache_config_path.read_bytes())
@@ -79,7 +80,7 @@ class Cache:
             return 300  # default 5 minutes
 
     def __init__(self, context_name: str, enabled: bool = True):
-        self.db_path = get_esctl_home() / "cache.db"
+        self.db_path = ESCTL_CACHE_DB_PATH
         self.enabled = enabled
         self.conn = sqlite3.connect(self.db_path, autocommit=True)
         self.conn.execute("PRAGMA journal_mode=WAL;")

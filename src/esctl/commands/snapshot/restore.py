@@ -1,7 +1,7 @@
 from typing import Annotated
 import typer
 
-from esctl.config import get_client_from_ctx
+from config import Config
 from esctl.models.enums import Format
 from esctl.output import pretty_print
 from esctl.params import IndexOption
@@ -14,7 +14,7 @@ app = typer.Typer()
 def snapshot_callback(ctx: typer.Context, value: str) -> str:
     if value != "latest":
         return value
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     repository: str = ctx.params["repository"]
     snapshots = client.snapshot.get(repository=repository, snapshot="*").body[
         "snapshots"
@@ -37,7 +37,7 @@ def restore(
     """
     Restore a snapshot from a repository.
     """
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     if not repository:
         return
 

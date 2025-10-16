@@ -1,8 +1,8 @@
 from contextlib import suppress
 
 import typer
+from config import Config
 
-from esctl.config import get_client_from_ctx
 from esctl.models.enums import Format
 from esctl.output import pretty_print
 from esctl.params import (
@@ -52,7 +52,7 @@ def allocation(
             "local": local_only,
         }
     )
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     response = client.cat.allocation(**params)
     response = select_from_context(ctx, response)
     pretty_print(

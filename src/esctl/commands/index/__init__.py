@@ -3,7 +3,7 @@ from typing import Annotated, TypedDict
 from elasticsearch import BadRequestError
 import typer
 
-from esctl.config import get_client_from_ctx
+from config import Config
 from esctl.models.enums import Format
 from esctl.output import pretty_print
 from esctl.selectors import select_from_context
@@ -100,7 +100,7 @@ def create(
     number_of_shards: int = 1,
     number_of_replicas: int = 1,
 ):
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     try:
         response = client.indices.create(
             index=index,

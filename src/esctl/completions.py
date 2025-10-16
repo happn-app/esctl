@@ -4,13 +4,13 @@ import warnings
 
 import typer
 
-from esctl.config import get_client_from_ctx, read_config
+from config import Config
 
 
 def complete_column(
     ctx: typer.Context, incomplete: str
 ) -> Iterable[str | tuple[str, str]]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     command_name: str = ctx.command.name or ""
     response: str = getattr(client.cat, command_name)(help=True).body
     columns = [
@@ -41,7 +41,7 @@ def complete_sort(
 
 
 def complete_index(ctx: typer.Context, incomplete: str) -> Iterable[str]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     indices = client.cat.indices(format="text", h="index").body.splitlines()
     for index in indices:
         if index.startswith(incomplete):
@@ -49,7 +49,7 @@ def complete_index(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 
 def complete_node(ctx: typer.Context, incomplete: str) -> Iterable[str]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     nodes = [n["name"] for n in client.nodes.info().body["nodes"].values()]
     for node in nodes:
         if node.startswith(incomplete):
@@ -57,7 +57,7 @@ def complete_node(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 
 def complete_shard(ctx: typer.Context, incomplete: str) -> Iterable[str]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     index = ctx.params.get("index", ctx.params.get("indices", None))
     shards = client.cat.shards(format="text", h="shard", index=index).body.splitlines()
     for shard in shards:
@@ -66,14 +66,14 @@ def complete_shard(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 
 def complete_context(incomplete: str):
-    cfg = read_config()
+    cfg = Config.load()
     return [
         context for context in cfg.contexts.keys() if context.startswith(incomplete)
     ]
 
 
 def complete_settings_key(ctx: typer.Context, incomplete: str) -> Iterable[str]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     settings = client.cluster.get_settings(
         include_defaults=True, flat_settings=True
     ).body
@@ -86,7 +86,7 @@ def complete_settings_key(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 
 def complete_parent_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         tasks_with_parents = [
@@ -103,7 +103,7 @@ def complete_parent_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str
 
 
 def complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         tasks = [
@@ -116,7 +116,7 @@ def complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 
 def complete_repository(ctx: typer.Context, incomplete: str) -> Iterable[str]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     repositories = [repo["name"] for repo in client.snapshot.get_repository().body]
     for repository in repositories:
         if repository.startswith(incomplete):
@@ -124,7 +124,7 @@ def complete_repository(ctx: typer.Context, incomplete: str) -> Iterable[str]:
 
 
 def complete_snapshot_name(ctx: typer.Context, incomplete: str) -> Iterable[str]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     repository = ctx.params.get("repository")
     if not repository:
         return
@@ -141,7 +141,7 @@ def complete_snapshot_name(ctx: typer.Context, incomplete: str) -> Iterable[str]
 
 
 def complete_snapshot_indices(ctx: typer.Context, incomplete: str) -> Iterable[str]:
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     repository = ctx.params.get("repository")
     if not repository:
         return

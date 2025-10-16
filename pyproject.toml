@@ -37,6 +37,9 @@ dependencies = [
     "ipython >=9.5.0,<10",
     "blake3 >=1.0.6,<2",
     "orjson >=3.11.3,<4",
+    "constants",
+    "transport",
+    "config",
 ]
 license-files = ["LICENSE"]
 
@@ -62,6 +65,14 @@ default-groups = [
 ]
 required-version = ">=0.9.2,<1.0.0"
 add-bounds = "major"
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+constants = { workspace = true }
+transport = { workspace = true }
+config = { workspace = true }
 
 [build-system]
 requires = ["uv_build>=0.9.2,<0.10.0"]

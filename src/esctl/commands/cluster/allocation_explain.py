@@ -1,6 +1,6 @@
 import typer
 
-from esctl.config import get_client_from_ctx
+from config import Config
 from esctl.models.enums import Format
 from esctl.output import pretty_print
 from esctl.params import (
@@ -26,7 +26,7 @@ def allocation_explain(
     index: IndexOption | None = None,
     primary: ExplainPrimaryShardOption = False,
 ):
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     if index is not None and len(index) > 1:
         typer.echo("Error: Only one index can be specified.", err=True)
         raise typer.Exit(code=1)
