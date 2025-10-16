@@ -64,8 +64,8 @@ required-version = ">=0.9.2,<1.0.0"
 add-bounds = "major"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.9.2,<0.10.0"]
+build-backend = "uv_build"
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
