@@ -1,7 +1,7 @@
 import typer
 
-from esctl.config import get_client_from_ctx
-from esctl.models.enums import Format
+from esctl.config import Config
+from esctl.enums import Format
 from esctl.output import pretty_print
 from esctl.params import (
     FormatOption,
@@ -26,7 +26,7 @@ def get(
     name: SettingsKeyArgument,
     format: FormatOption = Format.text,
 ):
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     response = client.indices.get_settings(index=index, name=name)
     response = select_from_context(ctx, response)
     pretty_print(
@@ -48,7 +48,7 @@ def update(
     ),
     format: FormatOption = Format.text,
 ):
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     body = {"settings": {name: value}}
     response = client.indices.put_settings(index=index, body=body)
     response = select_from_context(ctx, response)

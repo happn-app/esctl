@@ -2,6 +2,9 @@ import importlib
 import logging
 from typing import Annotated, Any, Callable
 
+import elasticsearch7
+import elasticsearch8
+import elasticsearch9
 import typer
 from jmespath import compile as compile_jmespath
 from jsonpath_ng import parse as parse_jsonpath
@@ -10,10 +13,6 @@ from rich import print
 from rich.prompt import Confirm
 from yamlpath import YAMLPath
 
-from esctl.models.config.base import ESConfig
-from esctl.models.config.gce import GCEESConfig
-from esctl.models.config.http import HTTPESConfig
-from esctl.models.config.kube import KubeESConfig
 from esctl.utils import create_github_issue
 
 from .commands.cat import app as cat_app
@@ -26,17 +25,43 @@ from .commands.troubleshoot import app as troubleshoot_app
 from .commands.snapshot import app as snapshot_app
 from .commands.shell import app as shell_app
 from .commands._exec import app as exec_app
-from .config import read_config
+from esctl.config import Config, ESConfigType
 
 
 class CustomTyper(typer.Typer):
     def __call__(self, *args, **kwargs):
+        token = cfg.github_auth
         try:
             super(CustomTyper, self).__call__(*args, **kwargs)
-        except Exception as e:
-            token = cfg.github_auth
+        except (KeyboardInterrupt, typer.Exit):
+            raise
+        except elasticsearch7.ElasticsearchException as e:
             if token and Confirm.ask("Submit a GitHub issue?", default=True):
-                create_github_issue(e, token)
+                create_github_issue(
+                    e, token, ".".join(str(part) for part in elasticsearch7.__version__)
+                )
+            raise
+        except tuple(
+            getattr(elasticsearch8.exceptions, s)
+            for s in elasticsearch8.exceptions.__all__
+        ) as e:
+            if token and Confirm.ask("Submit a GitHub issue?", default=True):
+                create_github_issue(
+                    e, token, ".".join(str(part) for part in elasticsearch8.__version__)
+                )
+            raise
+        except tuple(
+            getattr(elasticsearch9.exceptions, s)
+            for s in elasticsearch9.exceptions.__all__
+        ) as e:
+            if token and Confirm.ask("Submit a GitHub issue?", default=True):
+                create_github_issue(
+                    e, token, ".".join(str(part) for part in elasticsearch9.__version__)
+                )
+            raise
+        except Exception as e:
+            if token and Confirm.ask("Submit a GitHub issue?", default=True):
+                create_github_issue(e, token, "unknown")
             raise
 
 
@@ -103,7 +128,7 @@ app.add_typer(
     help="Execute a python script to interact with your cluster",
 )
 
-cfg = read_config()
+cfg = Config.load()
 
 
 def alias_factory(command: str, args: Any):
@@ -122,7 +147,7 @@ for alias_name, alias in cfg.aliases.items():
     )
 
 
-def exit_handler(conf: KubeESConfig | HTTPESConfig | GCEESConfig | None):
+def exit_handler(conf: ESConfigType | None):
     if conf is None:
         return
     if conf.type == "gce":
@@ -196,17 +221,27 @@ def callback(
         ),
     ] = False,
 ):
+    if context is not None:
+        cfg.current_context = context
+
+    conf: ESConfigType = cfg.contexts[cfg.current_context]
     if version:
         from esctl import __version__ as esctl_version
-        from elasticsearch._version import __versionstr__ as es_version
         from kubernetes import __version__ as k8s_version
         import sys
 
+        info = conf.client.info()
+        if isinstance(info, dict):
+            es_version = info.get("version", {}).get("number", "unknown")
+        else:
+            es_version = info.body.get("version", {}).get("number", "unknown")
+
         print(f"esctl version         : [blue]{esctl_version}[/]")
+        print(f"Current Context       : [blue]{conf.name}[/]")
         print(f"Elasticsearch version : [blue]{es_version}[/]")
         print(f"Kubernetes version    : [blue]{k8s_version}[/]")
         print(f"Python version        : [blue]{sys.version}[/]")
-        print("License               : [blue]Apache-2.0[/]")
+        print("License                : [blue]Apache-2.0[/]")
         raise typer.Exit()
     # Make jsonpath, jmespath and yamlpath mutually exclusive
     if len([arg for arg in (jsonpath, jmespath, yamlpath) if arg]) > 1:
@@ -227,11 +262,6 @@ def callback(
         handlers=[RichHandler(markup=True, rich_tracebacks=True)],
     )
     logger = logging.getLogger("esctl")
-
-    if context is not None:
-        cfg.current_context = context
-
-    conf: ESConfig | None = cfg.contexts.get(cfg.current_context)
     ctx.obj = {
         "config": cfg,
         "cache_enabled": bool(cache),
@@ -257,5 +287,5 @@ if __name__ == "__main__":
     except Exception as e:
         token = cfg.github_auth
         if token and Confirm.ask("Submit a GitHub issue?", default=True):
-            create_github_issue(e, token)
+            create_github_issue(e, token, "unknown")
         raise

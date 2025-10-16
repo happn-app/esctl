@@ -1,11 +1,10 @@
 import typer
 
-from esctl.config import get_client_from_ctx
-from esctl.models.enums import Conflict, Format
+from esctl.config import Config, get_root_ctx
+from esctl.enums import Conflict, Format
 from esctl.output import pretty_print
 from esctl.params import IndexArgument, SliceOption
 from esctl.selectors import select_from_context
-from esctl.utils import get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -32,7 +31,7 @@ def reindex(
     }
     if slices is None:
         slices = "auto"  # type: ignore
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     response = client.reindex(
         dest=dest_dict,
         source=source_dict,

@@ -24,6 +24,10 @@ jobs:
 
       - name: 🏗 Set up yq
         uses: frenck/action-setup-yq@v1.0.2
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7.1.0
+        with:
+          enable-cache: true
 
       - name: Check pyproject.toml version is higher than latest git tag
         id: check
@@ -80,6 +84,13 @@ jobs:
           fi
           exit 0
 
+      - name: Run uv build
+        if: steps.check.outputs.skip == '0'
+        run: |
+          uv build
+          cp dist/esctl-*.tar.gz dist/esctl-latest.tar.gz
+          cp dist/esctl-*.whl dist/esctl-latest.whl
+
       - name: Create new GitHub Release
         if: steps.check.outputs.skip == '0'
         uses: ncipollo/release-action@v1.20.0
@@ -93,3 +104,4 @@ jobs:
             ${{ steps.check.outputs.changes }}
           draft: false
           prerelease: false
+          artifacts: dist/*

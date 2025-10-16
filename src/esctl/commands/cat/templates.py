@@ -1,7 +1,7 @@
 import typer
 
-from esctl.config import get_client_from_ctx
-from esctl.models.enums import Format
+from esctl.config import Config
+from esctl.enums import Format
 from esctl.output import pretty_print
 from esctl.params import (
     FormatOption,
@@ -30,7 +30,7 @@ def templates(
             "s": ",".join(sort) if sort else None,
         }
     )
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     response = client.cat.templates(**params)
     response = select_from_context(ctx, response)
     pretty_print(

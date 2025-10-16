@@ -8,7 +8,7 @@ from rich.syntax import Syntax
 from rich.table import Table
 from ruamel.yaml import YAML
 
-from esctl.models.enums import Format
+from esctl.enums import Format
 
 
 RM_WHITESPACE = re.compile(r"\s+")

@@ -4,8 +4,8 @@ from typing import Annotated
 import typer
 
 from esctl.completions import complete_repository
-from esctl.config import get_client_from_ctx
-from esctl.models.enums import Format
+from esctl.config import Config
+from esctl.enums import Format
 from esctl.output import pretty_print
 from esctl.params import FormatOption
 from esctl.utils import get_root_ctx, strfdelta
@@ -77,7 +77,7 @@ def _list(
     """
     Restore a snapshot from a repository.
     """
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     snapshots = client.snapshot.get(repository=repository, snapshot="*").body[
         "snapshots"
     ]

@@ -5,13 +5,13 @@ import typer
 import typer.completion
 from typing_extensions import Annotated
 
-from esctl.models.enums import Shell
+from esctl.enums import Shell
 from esctl.utils import get_root_ctx
 
 from .add_context import app as add_context_app
 from .cache import app as cache_app
 from esctl.completions import complete_context
-from esctl.config import Config, edit_config
+from esctl.config import Config
 
 app = typer.Typer(rich_markup_mode="rich")
 app.add_typer(
@@ -104,7 +104,7 @@ def remove_context(
 
 @app.command(help="Open the esctl configuration file in the default editor")
 def edit():
-    edit_config()
+    Config.edit()
 
 
 # TODO: find a way to add aliases to commands without having to edit the config file

@@ -1,10 +1,9 @@
 from contextlib import suppress
 
 import typer
-from elasticsearch import Elasticsearch
 
-from esctl.config import get_client_from_ctx
-from esctl.models.enums import Format
+from esctl.config import Config
+from esctl.enums import Format
 from esctl.output import pretty_print
 from esctl.params import (
     BytesOption,
@@ -45,7 +44,7 @@ def indices(
     bytes: BytesOption | None = None,
     format: FormatOption = Format.text,
 ):
-    client: Elasticsearch = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     params = get_cat_base_params_from_context(ctx, format)
     params.update(
         {

@@ -1,8 +1,8 @@
 import typer
 from rich.prompt import Confirm
 
-from esctl.config import get_client_from_ctx
-from esctl.models.enums import Format
+from esctl.config import Config
+from esctl.enums import Format
 from esctl.output import pretty_print
 from esctl.params import (
     RerouteDryRunOption,
@@ -20,7 +20,7 @@ def reroute(
     explain: RerouteExplainOption = False,
     retry_failed: RerouteRetryFailedOption = False,
 ):
-    client = get_client_from_ctx(ctx)
+    client = Config.from_context(ctx).client
     if not dry_run:
         # Do not ask for confirmation if dry-run is enabled
         # Dry run doesn't actually do anything, just planning so it's okay

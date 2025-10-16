@@ -1,20 +1,23 @@
 import os
 from pathlib import Path
+import platform
 from string import Template
 
 
-def get_esctl_config_path() -> Path:
-    return get_esctl_home() / "config.json"
+if platform.system() == "Windows":
+    XDG_CONFIG_HOME = Path(os.getenv("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+else:
+    XDG_CONFIG_HOME = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config"))
 
+if os.getenv("ESCTL_HOME"):
+    ESCTL_HOME = Path(os.environ["ESCTL_HOME"])
+else:
+    ESCTL_HOME = XDG_CONFIG_HOME / "esctl"
 
-def get_esctl_home() -> Path:
-    if os.getenv("ESCONFIG"):
-        return Path(os.environ["ESCONFIG"])
-    HOME = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config"))
-    CONFIG_DIR = HOME / "esctl"
-    if not CONFIG_DIR.exists():
-        CONFIG_DIR.mkdir(exist_ok=True, parents=True)
-    return CONFIG_DIR
+ESCTL_HOME.mkdir(exist_ok=True, parents=True)
+ESCTL_CONFIG_PATH = ESCTL_HOME / "config.json"
+ESCTL_TTL_CONFIG_PATH = ESCTL_HOME / "ttl.json"
+ESCTL_CACHE_DB_PATH = ESCTL_HOME / "cache.db"
 
 
 ISSUE_TEMPLATE = Template("""# An exception of type `$exception_type` occurred.
