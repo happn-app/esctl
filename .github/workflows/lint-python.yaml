@@ -33,22 +33,13 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Set up poetry
-        uses: abatilo/actions-poetry@v4.0.0
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7.1.0
         with:
-          poetry-version: ${{ env.POETRY_VERSION }}
-
-      - uses: actions/cache@v4.3.0
-        name: Define a cache for the virtual environment based on the dependencies lock file
-        with:
-          path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
-
-      - name: Install dependencies
-        run: poetry install
+            enable-cache: true
 
       - name: Check formatting
-        run: poetry run ruff format --check
+        run: uv run ruff format --check
 
   lint:
     name: ruff check
@@ -62,19 +53,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Set up poetry
-        uses: abatilo/actions-poetry@v4.0.0
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7.1.0
         with:
-          poetry-version: ${{ env.POETRY_VERSION }}
-
-      - uses: actions/cache@v4.3.0
-        name: Define a cache for the virtual environment based on the dependencies lock file
-        with:
-          path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
-
-      - name: Install dependencies
-        run: poetry install
+            enable-cache: true
 
       - name: Lint code
-        run: poetry run ruff check
+        run: uv run ruff check

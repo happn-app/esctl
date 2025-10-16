@@ -3,7 +3,7 @@ list:
 
 [group('format')]
 pyfmt:
-  poetry run ruff format
+  uv run ruff format
 
 [group('format')]
 mdfmt:
@@ -18,11 +18,11 @@ fmt: pyfmt mdfmt yamlfmt
 
 [group('lint')]
 pylint:
-  poetry run ruff check .
+  uv run ruff check .
 
 [group('lint')]
 pyfmt-check:
-  poetry run ruff format --check
+  uv run ruff format --check
 
 [group('lint')]
 yamllint:
@@ -37,4 +37,4 @@ lint: pylint pyfmt-check yamllint mdlint
 
 [group('docs')]
 docs:
-  poetry run mkdocs serve
+  uv run mkdocs serve
