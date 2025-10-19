@@ -1,4 +1,7 @@
+import time
 from typing import Annotated, Iterable
+
+from rich import print
 import typer
 
 from esctl.config import Config
@@ -7,26 +10,12 @@ from esctl.options import OutputOption, Result
 app = typer.Typer()
 
 
-def snapshot_callback(ctx: typer.Context, value: str) -> str:
-    if value != "latest":
-        return value
-    client = Config.from_context(ctx).client
-    repository: str = ctx.params["repository"]
-    snapshots = client.snapshot.get(repository=repository, snapshot="*").body[
-        "snapshots"
-    ]
-    snapshot = snapshots[-1]["snapshot"] if snapshots else None  # type: ignore
-    if snapshot is None:
-        raise typer.BadParameter(f"No snapshots found in repository {repository}")
-    return snapshot
-
-
 def complete_repository(ctx: typer.Context, incomplete: str) -> Iterable[str]:
     client = Config.from_context(ctx).client
-    repositories: list[str] = [
-        repo["name"] for repo in client.snapshot.get_repository().body
+    return [
+        repo for repo in client.snapshot.get_repository(name=f"{incomplete}*").body
+        if repo.startswith(incomplete)
     ]
-    return [repo for repo in repositories if repo.startswith(incomplete)]
 
 
 def complete_snapshot_name(ctx: typer.Context, incomplete: str) -> Iterable[str]:
@@ -39,7 +28,7 @@ def complete_snapshot_name(ctx: typer.Context, incomplete: str) -> Iterable[str]
         for snapshot in client.snapshot.get(
             repository=repository,
             snapshot=f"{incomplete}*",
-        ).raw["snapshots"]
+        ).body["snapshots"]
     ]
     snapshots.append("latest")
     return snapshots
@@ -74,7 +63,6 @@ RestoreSnapshotNameArgument = Annotated[
     typer.Argument(
         help="The name of the snapshot to restore",
         autocompletion=complete_snapshot_name,
-        callback=snapshot_callback,
     ),
 ]
 
@@ -102,23 +90,103 @@ def restore(
         ),
     ],
     snapshot: RestoreSnapshotNameArgument = "latest",
-    index: RestoreSnapshotIndexOption = ["*"],
+    include_system_indices: Annotated[
+        bool,
+        typer.Option(
+            "--include-system-indices/--no-include-system-indices",
+            help="Whether to include system indices in the restore",
+        ),
+    ] = False,
+    index: RestoreSnapshotIndexOption | None = None,
+    close_all: Annotated[
+        bool,
+        typer.Option(
+            "--close-all/--no-close-all",
+            help="Whether to close all open indices before restoring the snapshot",
+        ),
+    ] = True,
+    reroute: Annotated[
+        bool,
+        typer.Option(
+            "--reroute/--no-reroute",
+            help="Whether to reroute shards after restoring the snapshot",
+        ),
+    ] = True,
+    recreate_repository: Annotated[
+        bool,
+        typer.Option(
+            "--recreate-repository/--no-recreate-repository",
+            help="Whether to recreate the repository before restoring the snapshot",
+        ),
+    ] = False,
     output: OutputOption = "json",
 ):
     """
     Restore a snapshot from a repository.
     """
     client = Config.from_context(ctx).client
-    if not repository:
-        return
 
-    index = client.snapshot.get(repository=repository, snapshot=snapshot).body[
-        "snapshots"
-    ][0]["indices"]
+    if snapshot == "latest" and recreate_repository:
+        start = time.time()
+        repository_config = client.snapshot.get_repository(name=repository).body[
+            repository
+        ]
+        # Recreate the repository
+        client.snapshot.delete_repository(name=repository)
+        client.snapshot.create_repository(
+            name=repository,
+            body={
+                "type": repository_config["type"],
+                "settings": repository_config["settings"],
+            },
+        )
+        print(f"Recreated repository in [b blue]{time.time() - start:.2f}[/]s")
+
+    if snapshot == "latest":
+        start = time.time()
+        snapshot = next(
+            iter(
+                client.snapshot.get(
+                    repository=repository,
+                    snapshot="*",
+                    sort="start_time",
+                    order="desc",
+                ).body["snapshots"]
+            )
+        )["snapshot"]
+        print(
+            (
+                f"Resolved latest snapshot to [b green]{snapshot}[/] in repository "
+                f"[b purple]{repository}[/] in [b blue]{time.time() - start:.2f}[/]s"
+            )
+        )
+
+    indices = index
+    if indices is None:
+        if include_system_indices:
+            indices = ["*"]
+        else:
+            indices = ["*", "-.*"]
+
+    if close_all:
+        start = time.time()
+        open_indices = client.indices.get_alias(index="*").body.keys()
+        for idx in open_indices:
+            client.indices.close(index=idx)
+        print(
+            f"Closed all open indices before restoring the snapshot in [b blue]{time.time() - start:.2f}[/]s"
+        )
+    start = time.time()
     response = client.snapshot.restore(
         repository=repository,
         snapshot=snapshot,
-        indices=index,
+        indices=indices,
+    )
+    print(
+        (
+            f"Restored snapshot [b green]{snapshot}[/] from repository "
+            f"[b purple]{repository}[/] completed in [b blue]{time.time() - start:.2f}[/]s"
+        )
     )
     result: Result = ctx.obj["selector"](response)
     if output == "json" or output == "yaml":
@@ -126,3 +194,12 @@ def restore(
         return
     else:
         result.print("json")
+    if reroute:
+        start = time.time()
+        client.cluster.reroute(retry_failed=True)
+        print(
+            (
+                f"Rerouted cluster after restoring snapshot [b green]{snapshot}[/b] "
+                f"from repository [b purple]{repository}[/]in [b blue]{time.time() - start:.2f}[/]s"
+            )
+        )
