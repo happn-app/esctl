@@ -1,6 +1,6 @@
 [project]
 name = "esctl"
-version = "1.14.0"
+version = "1.14.1"
 description = "CLI tool to run commands on ES clusters"
 authors = [{ name = "Simon Bordeyne", email = "simon.bordeyne@happn.fr" }]
 requires-python = ">=3.11,<4.0"
