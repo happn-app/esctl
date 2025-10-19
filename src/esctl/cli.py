@@ -194,6 +194,11 @@ def callback(
     if context is not None:
         cfg.current_context = context
 
+    if cfg.current_context not in cfg.contexts:
+        print(
+            f"[red]Error:[/] Context [b]{cfg.current_context}[/] not found in configuration."
+        )
+        raise typer.Exit(code=1)
     conf: ESConfigType = cfg.contexts[cfg.current_context]
     if version:
         from esctl import __version__ as esctl_version

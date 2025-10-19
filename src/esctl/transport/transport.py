@@ -107,8 +107,12 @@ def KubeNodeClassFactory(
     kube_context: str,
     kube_namespace: str,
     es_name: str,
+    in_cluster: bool = False,
 ) -> Type[CacheHttpNode]:
-    kube_config.load_kube_config(context=kube_context)
+    if in_cluster:
+        kube_config.load_incluster_config()
+    else:
+        kube_config.load_kube_config(context=kube_context)
     k8s_api = kube_client.CoreV1Api()
     pod_name = next(
         pod.metadata.name

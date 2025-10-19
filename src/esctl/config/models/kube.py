@@ -11,6 +11,7 @@ class KubeESConfig(ESConfig):
     kube_context: str | None = None
     kube_namespace: str | None = None
     es_name: str | None = None
+    in_cluster: bool = False
 
     @property
     def censored_password(self) -> str:
@@ -32,4 +33,5 @@ class KubeESConfig(ESConfig):
             self.kube_context,
             self.kube_namespace,
             self.es_name,
+            in_cluster=self.in_cluster,
         )

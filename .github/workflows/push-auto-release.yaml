@@ -15,6 +15,9 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      skip: ${{ steps.check.outputs.skip }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -105,3 +108,52 @@ jobs:
           draft: false
           prerelease: false
           artifacts: dist/*
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.skip == '0'
+    strategy:
+      matrix:
+        python-version: [ "3.11", "3.12", "3.13", "3.14" ]
+        info:
+          - dockerfile: Dockerfile.alpine
+            suffix: alpine
+            os_version: ""
+          - dockerfile: Dockerfile.debian
+            suffix: bookworm
+            os_version: bookworm
+          - dockerfile: Dockerfile.debian
+            suffix: trixie
+            os_version: trixie
+          - dockerfile: Dockerfile.debian
+            suffix: bookworm-slim
+            os_version: bookworm-slim
+          - dockerfile: Dockerfile.debian
+            suffix: trixie-slim
+            os_version: trixie-slim
+
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v5
+
+      - name: 🐙 Log in to GitHub Container Registry
+        uses: docker/login-action@v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐳 Build and push Docker image
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          file: ./${{ matrix.info.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/happn-app/esctl:${{ needs.release.outputs.version }}-py${{ matrix.python-version }}-${{ matrix.info.suffix }}
+          build-args: |
+            OS_VERSION=${{ matrix.info.os_version }}
+            GIT_REV=${{ github.sha }}
+            CREATED_AT=${{ github.event.head_commit.timestamp }}
+            PYTHON_VERSION=${{ matrix.python-version }}

@@ -1,0 +1,27 @@
+ARG OS_VERSION=bookworm
+ARG PYTHON_VERSION=3.14
+FROM ghcr.io/astral-sh/uv:python${PYTHON_VERSION}-${OS_VERSION}
+
+ARG CREATED_AT=""
+ARG GIT_REV="dirty"
+LABEL org.opencontainers.image.source="https://github.com/happn-app/esctl"
+LABEL org.opencontainers.image.description="esctl is a CLI tool to manage Elasticsearch clusters on any infrastructure."
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.authors="Happn <ops@happn.fr>"
+LABEL org.opencontainers.image.vendor="Happn"
+LABEL org.opencontainers.image.created=${CREATED_AT}
+LABEL org.opencontainers.image.revision=${GIT_REV}
+
+RUN groupadd --system esctl && useradd --system --gid esctl --create-home esctl
+RUN mkdir -p /home/esctl/.local/bin && chown -R esctl:esctl /home/esctl
+RUN mkdir -p /etc/esctl && chown -R esctl:esctl /etc/esctl
+USER esctl
+
+WORKDIR /home/esctl/esctl
+COPY --chown=esctl:esctl pyproject.toml uv.lock README.md LICENSE /home/esctl/esctl/
+COPY --chown=esctl:esctl src /home/esctl/esctl/src
+ENV UV_TOOL_BIN_DIR=/home/esctl/.local/bin
+ENV PATH="$UV_TOOL_BIN_DIR:$PATH"
+RUN uv tool install .
+ENV ESCTL_HOME=/etc/esctl
+ENTRYPOINT ["esctl"]

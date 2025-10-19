@@ -16,6 +16,7 @@ def KubeClientFactory(
     kube_context: str,
     kube_namespace: str,
     es_name: str,
+    in_cluster: bool = False,
 ) -> Elasticsearch:
     Node = KubeNodeClassFactory(
         context_name=context_name,
@@ -23,6 +24,7 @@ def KubeClientFactory(
         kube_context=kube_context,
         kube_namespace=kube_namespace,
         es_name=es_name,
+        in_cluster=in_cluster,
     )
     transport = Transport(
         node_configs=[NodeConfig("http", "localhost", 9200)], node_class=Node
