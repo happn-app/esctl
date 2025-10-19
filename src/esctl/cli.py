@@ -2,30 +2,26 @@ import importlib
 import logging
 from typing import Annotated, Any, Callable
 
-import elasticsearch7
 import elasticsearch8
 import elasticsearch9
 import typer
-from jmespath import compile as compile_jmespath
-from jsonpath_ng import parse as parse_jsonpath
 from rich.logging import RichHandler
 from rich import print
-from rich.prompt import Confirm
-from yamlpath import YAMLPath
 
-from esctl.utils import create_github_issue
 
-from .commands.cat import app as cat_app
-from .commands.cluster import app as cluster_app
-from .commands.config import app as config_app
-from .commands.tasks import app as task_app
-from .commands.index import app as index_app
-from .commands.reindex import app as reindex_app
-from .commands.troubleshoot import app as troubleshoot_app
-from .commands.snapshot import app as snapshot_app
-from .commands.shell import app as shell_app
-from .commands._exec import app as exec_app
+from esctl.commands.cat import app as cat_app
+from esctl.commands.cluster import app as cluster_app
+from esctl.commands.config import app as config_app
+from esctl.commands.tasks import app as task_app
+from esctl.commands.index import app as index_app
+from esctl.commands.reindex import app as reindex_app
+from esctl.commands.troubleshoot import app as troubleshoot_app
+from esctl.commands.snapshot import app as snapshot_app
+from esctl.commands.shell import app as shell_app
+from esctl.commands._exec import app as exec_app
+from esctl.options.output import OutputOption
 from esctl.config import Config, ESConfigType
+from esctl.utils import try_create_github_issue
 
 
 class CustomTyper(typer.Typer):
@@ -35,33 +31,24 @@ class CustomTyper(typer.Typer):
             super(CustomTyper, self).__call__(*args, **kwargs)
         except (KeyboardInterrupt, typer.Exit):
             raise
-        except elasticsearch7.ElasticsearchException as e:
-            if token and Confirm.ask("Submit a GitHub issue?", default=True):
-                create_github_issue(
-                    e, token, ".".join(str(part) for part in elasticsearch7.__version__)
-                )
-            raise
         except tuple(
             getattr(elasticsearch8.exceptions, s)
             for s in elasticsearch8.exceptions.__all__
         ) as e:
-            if token and Confirm.ask("Submit a GitHub issue?", default=True):
-                create_github_issue(
-                    e, token, ".".join(str(part) for part in elasticsearch8.__version__)
-                )
+            try_create_github_issue(
+                e, token, ".".join(str(part) for part in elasticsearch8.__version__)
+            )
             raise
         except tuple(
             getattr(elasticsearch9.exceptions, s)
             for s in elasticsearch9.exceptions.__all__
         ) as e:
-            if token and Confirm.ask("Submit a GitHub issue?", default=True):
-                create_github_issue(
-                    e, token, ".".join(str(part) for part in elasticsearch9.__version__)
-                )
+            try_create_github_issue(
+                e, token, ".".join(str(part) for part in elasticsearch9.__version__)
+            )
             raise
         except Exception as e:
-            if token and Confirm.ask("Submit a GitHub issue?", default=True):
-                create_github_issue(e, token, "unknown")
+            try_create_github_issue(e, token, "unknown")
             raise
 
 
@@ -180,24 +167,7 @@ def callback(
             help="Increase verbosity level",
         ),
     ] = 0,
-    jsonpath: Annotated[
-        str | None,
-        typer.Option(
-            help="JSONPath expression to filter the response, implies --format=json",
-        ),
-    ] = None,
-    jmespath: Annotated[
-        str | None,
-        typer.Option(
-            help="JMESPath expression to filter the response, implies --format=json",
-        ),
-    ] = None,
-    yamlpath: Annotated[
-        str | None,
-        typer.Option(
-            help="YAMLPath expression to filter the response, implies --format=yaml",
-        ),
-    ] = None,
+    output: OutputOption = "table",
     pretty: Annotated[
         bool,
         typer.Option(
@@ -243,11 +213,6 @@ def callback(
         print(f"Python version        : [blue]{sys.version}[/]")
         print("License                : [blue]Apache-2.0[/]")
         raise typer.Exit()
-    # Make jsonpath, jmespath and yamlpath mutually exclusive
-    if len([arg for arg in (jsonpath, jmespath, yamlpath) if arg]) > 1:
-        raise typer.BadParameter(
-            "--jsonpath, --jmespath and --yamlpath are mutually exclusive"
-        )
     level = {
         0: logging.ERROR,
         1: logging.WARNING,
@@ -268,14 +233,9 @@ def callback(
         "context": conf,
         "verbosity": verbose,
         "logger": logger,
-        "jsonpath": jsonpath,
-        "jmespath": jmespath,
-        "yamlpath": yamlpath,
+        "output": output,
         "pretty": bool(pretty),
     }
-    ctx.obj["jsonpath"] = parse_jsonpath(jsonpath) if jsonpath else None
-    ctx.obj["jmespath"] = compile_jmespath(jmespath) if jmespath else None
-    ctx.obj["yamlpath"] = YAMLPath(yamlpath) if yamlpath else None
     ctx.call_on_close(lambda: exit_handler(conf))
 
 
@@ -286,6 +246,5 @@ if __name__ == "__main__":
     #     raise
     except Exception as e:
         token = cfg.github_auth
-        if token and Confirm.ask("Submit a GitHub issue?", default=True):
-            create_github_issue(e, token, "unknown")
+        try_create_github_issue(e, token, "unknown")
         raise

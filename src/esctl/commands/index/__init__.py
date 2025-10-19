@@ -5,10 +5,7 @@ import elasticsearch9
 import typer
 
 from esctl.config import Config
-from esctl.enums import Format
-from esctl.output import pretty_print
-from esctl.selectors import select_from_context
-from esctl.utils import get_root_ctx
+from esctl.options.output import OutputOption, Result
 
 
 from .cache import app as cache_app
@@ -93,13 +90,42 @@ def index_callback(value: str) -> str:
 )
 def create(
     ctx: typer.Context,
-    index: Annotated[str, typer.Argument(callback=index_callback)],
-    mappings: Annotated[
-        str, typer.Argument(callback=mappings_callback, case_sensitive=True)
+    index: Annotated[
+        str,
+        typer.Argument(
+            help="Name of the index to create",
+            callback=index_callback,
+        ),
     ],
-    aliases: list[str] | None = None,
-    number_of_shards: int = 1,
-    number_of_replicas: int = 1,
+    mappings: Annotated[
+        str,
+        typer.Argument(
+            help="Mappings for the index in the form 'field_name:field_type,another_field:field_type'",
+            callback=mappings_callback,
+            case_sensitive=True,
+        ),
+    ],
+    aliases: Annotated[
+        list[str] | None,
+        typer.Option(
+            help="Aliases to add for this index",
+        ),
+    ] = None,
+    number_of_shards: Annotated[
+        int,
+        typer.Option(
+            help="Number of primary shards for this index",
+            min=1,
+        ),
+    ] = 1,
+    number_of_replicas: Annotated[
+        int,
+        typer.Option(
+            help="Number of replica shards for this index",
+            min=1,
+        ),
+    ] = 1,
+    output: OutputOption = "json",
 ):
     client = Config.from_context(ctx).client
     try:
@@ -112,12 +138,8 @@ def create(
             },
             mappings=mappings,  # type: ignore
         )
-        response = select_from_context(ctx, response)
-        pretty_print(
-            response,
-            format=Format.json,
-            pretty=get_root_ctx(ctx).obj.get("pretty", True),
-        )
+        result: Result = ctx.obj["selector"](response)
+        result.print(output)
     except (elasticsearch8.BadRequestError, elasticsearch9.BadRequestError) as e:
         typer.secho(
             f"Error creating index: {e.info['error']['reason']}", fg=typer.colors.RED

@@ -1,25 +1,9 @@
 import io
 from typing import Any
 
-from elasticsearch7.serializer import Serializer as Serializer7
 from elasticsearch8.serializer import Serializer as Serializer8
 from elasticsearch9.serializer import Serializer as Serializer9
 from ruamel.yaml import YAML
-
-
-class YamlSerializer7(Serializer7):
-    mimetype = "application/yaml"
-
-    def loads(self, s: str) -> Any:
-        stream = io.StringIO(s)
-        yaml = YAML()
-        return yaml.load(stream)
-
-    def dumps(self, data: Any) -> str:
-        yaml = YAML()
-        buffer = io.StringIO()
-        yaml.dump(data, buffer)
-        return buffer.getvalue()
 
 
 class YamlSerializer8(Serializer8):

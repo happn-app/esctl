@@ -1,12 +1,16 @@
+from enum import Enum
+from typing import Annotated
 import typer
 
-from esctl.config import Config, get_root_ctx
-from esctl.enums import Conflict, Format
-from esctl.output import pretty_print
-from esctl.params import IndexArgument, SliceOption
-from esctl.selectors import select_from_context
+from esctl.config import Config
+from esctl.options import IndexArgument, OutputOption, Result
 
 app = typer.Typer(rich_markup_mode="rich")
+
+
+class Conflict(str, Enum):
+    abort = "abort"
+    proceed = "proceed"
 
 
 @app.callback(
@@ -19,9 +23,17 @@ def reindex(
     dest: IndexArgument,
     wait_for_completion: bool = False,
     refresh: bool = False,
-    slices: SliceOption | None = None,
+    slices: Annotated[
+        int | None,
+        typer.Option(
+            "--slices",
+            "-s",
+            help="The number of slices to use for the reindexing operation. Defaults to 'auto'.",
+        ),
+    ] = None,
     require_alias: bool = False,
     conflicts: Conflict = Conflict.abort,
+    output: OutputOption = "json",
 ):
     source_dict = {
         "index": source,
@@ -40,8 +52,9 @@ def reindex(
         wait_for_completion=wait_for_completion,
         slices=slices,
         require_alias=require_alias,
-    ).raw
-    response = select_from_context(ctx, response)
-    pretty_print(
-        response, format=Format.json, pretty=get_root_ctx(ctx).obj.get("pretty", True)
     )
+    result: Result = ctx.obj["selector"](response)
+    if output == "json" or output == "yaml":
+        result.print(output)
+    else:
+        result.print("json")

@@ -1,41 +1,36 @@
-from contextlib import suppress
 from datetime import timedelta
-from typing import Annotated
+from typing import Annotated, Iterable
 import typer
 
-from esctl.completions import complete_repository
 from esctl.config import Config
-from esctl.enums import Format
-from esctl.output import pretty_print
-from esctl.params import FormatOption
-from esctl.utils import get_root_ctx, strfdelta
+from esctl.options import OutputOption, Result
+from esctl.utils import strfdelta
 
 app = typer.Typer()
 
 
-def formatter(header: list[str], row: list[str]) -> list[str]:
-    with suppress(ValueError):
-        status_idx = header.index("state")
-        if row[status_idx] == "SUCCESS":
-            row[status_idx] = f"[b green]{row[status_idx]}[/]"
-        elif row[status_idx] == "PARTIAL":
-            row[status_idx] = f"[b yellow]{row[status_idx]}[/]"
-        elif row[status_idx] == "FAILED":
-            row[status_idx] = f"[b red]{row[status_idx]}[/]"
-        elif row[status_idx] == "INCOMPATIBLE":
-            row[status_idx] = f"[b red]{row[status_idx]}[/]"
-        elif row[status_idx] == "IN_PROGRESS":
-            row[status_idx] = f"[b blue]{row[status_idx]}[/]"
-    with suppress(ValueError):
-        shards = header.index("shards")
-        percent = float(row[shards].split("%")[0])
+def formatter(column: str, value: str) -> str:
+    if column == "state":
+        match value:
+            case "SUCCESS":
+                return "[b green]SUCCESS[/]"
+            case "PARTIAL":
+                return "[b yellow]PARTIAL[/]"
+            case "FAILED":
+                return "[b red]FAILED[/]"
+            case "INCOMPATIBLE":
+                return "[b red]INCOMPATIBLE[/]"
+            case "IN_PROGRESS":
+                return "[b blue]IN_PROGRESS[/]"
+    if column == "shards":
+        percent = float(value.split("%")[0])
         if percent < 50:
-            row[shards] = f"[b red]{row[shards]}[/]"
+            return f"[b red]{value}[/]"
         elif percent < 75:
-            row[shards] = f"[b yellow]{row[shards]}[/]"
+            return f"[b yellow]{value}[/]"
         else:
-            row[shards] = f"[b green]{row[shards]}[/]"
-    return row
+            return f"[b green]{value}[/]"
+    return value
 
 
 def format_snapshot_for_text(snapshot: dict) -> dict:
@@ -63,6 +58,14 @@ def format_snapshot_for_text(snapshot: dict) -> dict:
     return formatted
 
 
+def complete_repository(ctx: typer.Context, incomplete: str) -> Iterable[str]:
+    client = Config.from_context(ctx).client
+    repositories: list[str] = [
+        repo["name"] for repo in client.snapshot.get_repository().body
+    ]
+    return [repo for repo in repositories if repo.startswith(incomplete)]
+
+
 @app.command(
     name="list",
     help="Lists snapshots in a repository.",
@@ -70,27 +73,23 @@ def format_snapshot_for_text(snapshot: dict) -> dict:
 def _list(
     ctx: typer.Context,
     repository: Annotated[
-        str, typer.Argument(autocompletion=complete_repository)
+        str,
+        typer.Argument(
+            help="Repository to fetch snapshot list from",
+            autocompletion=complete_repository,
+        ),
     ] = "*",
-    format: FormatOption = Format.text,
+    output: OutputOption = "json",
 ):
     """
     Restore a snapshot from a repository.
     """
     client = Config.from_context(ctx).client
-    snapshots = client.snapshot.get(repository=repository, snapshot="*").body[
-        "snapshots"
+    snapshots = client.snapshot.get(repository=repository, snapshot="*")
+    result: Result = ctx.obj["selector"](snapshots)
+    if output == "json" or output == "yaml":
+        result.print(output)
+        return
+    result.value = [
+        format_snapshot_for_text(s) for s in snapshots.body.get("snapshots", [])
     ]
-    if format == Format.text:
-        pretty_print(
-            [format_snapshot_for_text(s) for s in snapshots],
-            format=format,
-            formatter=formatter,
-            pretty=get_root_ctx(ctx).obj.get("pretty", True),
-        )
-    else:
-        pretty_print(
-            snapshots,
-            format=Format.json,
-            pretty=get_root_ctx(ctx).obj.get("pretty", True),
-        )

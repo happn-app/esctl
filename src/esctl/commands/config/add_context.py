@@ -2,7 +2,6 @@ from typing_extensions import Annotated
 import typer
 
 from esctl.config import Config
-from esctl.utils import get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -41,7 +40,7 @@ def http(
         | None
     ) = None,
 ):
-    config = get_root_ctx(ctx).obj["config"]
+    config = Config.load()
     config.add_context(
         context_name,
         "http",
@@ -88,7 +87,7 @@ def kubernetes(
         | None
     ) = None,
 ):
-    config = get_root_ctx(ctx).obj["config"]
+    config = Config.load()
     config.add_context(
         context_name,
         "kubernetes",
@@ -139,7 +138,7 @@ def gce(
         ),
     ] = "",
 ):
-    config: Config = get_root_ctx(ctx).obj["config"]
+    config = Config.load()
     config.add_context(
         context_name,
         "gce",

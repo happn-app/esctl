@@ -1,34 +1,70 @@
-from contextlib import suppress
-
+from itertools import product
+from typing import Annotated, Iterable
 import typer
 from esctl.config import Config
 
-from esctl.enums import Format
-from esctl.output import pretty_print
-from esctl.params import (
+from esctl.options import (
+    OutputOption,
+    Result,
     BytesOption,
-    FormatOption,
-    HeaderOption,
-    LocalOnlyOption,
-    SortOption,
 )
-from esctl.selectors import select_from_context
-from esctl.utils import get_cat_base_params_from_context, get_root_ctx
+
 
 app = typer.Typer(rich_markup_mode="rich")
 
 
-def formatter(header: list[str], row: list[str]) -> list[str]:
-    with suppress(ValueError):
-        disk_percent_idx = header.index("disk.percent")
-        disk_percent = float(row[disk_percent_idx].replace("%", ""))
+def formatter(column: str, value: str) -> str:
+    if column == "disk.percent":
+        disk_percent = float(value.replace("%", ""))
         if disk_percent < 75:
-            row[disk_percent_idx] = f"[b green]{row[disk_percent_idx]}[/]"
+            return f"[b green]{value}[/]"
         elif disk_percent < 85:
-            row[disk_percent_idx] = f"[b yellow]{row[disk_percent_idx]}[/]"
+            return f"[b yellow]{value}[/]"
         else:
-            row[disk_percent_idx] = f"[b red]{row[disk_percent_idx]}[/]"
-    return row
+            return f"[b red]{value}[/]"
+    return value
+
+
+def complete_column(incomplete: str) -> list[tuple[str, str]]:
+    columns = {
+        "shards": "number of shards on node",
+        "disk.indices": "disk used by ES indices",
+        "disk.used": "disk used (total, not just ES)",
+        "disk.avail": "disk available",
+        "disk.total": "total capacity of all volumes",
+        "disk.percent": "percent disk used",
+        "host": "host of node",
+        "ip": "ip of node",
+        "node": "name of node",
+    }
+    return [
+        (column, description)
+        for column, description in columns.items()
+        if column.startswith(incomplete)
+    ]
+
+
+def complete_sort(
+    ctx: typer.Context, incomplete: str
+) -> Iterable[str | tuple[str, str]]:
+    columns = list(complete_column(incomplete.split(":")[0]))
+    orders = ["asc", "desc"]
+    return [
+        (f"{column}:{order}", description)
+        for (column, description), order in product(columns, orders)
+        if column.startswith(incomplete.split(":")[0])
+    ]
+
+
+SortOption = Annotated[
+    list[str] | None,
+    typer.Option(
+        "--sort",
+        "-s",
+        autocompletion=complete_sort,
+        help="How to sort the response",
+    ),
+]
 
 
 @app.command(
@@ -37,27 +73,40 @@ def formatter(header: list[str], row: list[str]) -> list[str]:
 )
 def allocation(
     ctx: typer.Context,
-    header: HeaderOption | None = None,
-    sort: SortOption | None = None,
+    header: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--header",
+            "-h",
+            autocompletion=complete_column,
+            help="Columns to include in the response",
+        ),
+    ] = None,
+    sort: SortOption = None,
     bytes: BytesOption | None = None,
-    format: FormatOption = Format.text,
-    local_only: LocalOnlyOption = False,
+    local_only: Annotated[
+        bool,
+        typer.Option(
+            help=(
+                "If true, the request retrieves information from the local node only. "
+                "Defaults to false, which means information is retrieved from the master node."
+            ),
+        ),
+    ] = False,
+    output: OutputOption = "table",
 ):
-    params = get_cat_base_params_from_context(ctx, format)
-    params.update(
-        {
-            "h": ",".join(header) if header else None,
-            "s": ",".join(sort) if sort else None,
-            "bytes": bytes,
-            "local": local_only,
-        }
-    )
+    params = {
+        "s": ",".join(sort) if sort else None,
+        "h": ",".join(header) if header else None,
+        "bytes": bytes,
+        "local": local_only,
+        "format": "json",
+        "v": True,
+    }
     client = Config.from_context(ctx).client
     response = client.cat.allocation(**params)
-    response = select_from_context(ctx, response)
-    pretty_print(
-        response,
-        format=params["format"],
+    result: Result = ctx.obj["selector"](response)
+    result.print(
+        output=output,
         formatter=formatter,
-        pretty=get_root_ctx(ctx).obj.get("pretty", True),
     )

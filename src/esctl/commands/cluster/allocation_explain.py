@@ -1,17 +1,14 @@
+from typing import Annotated
 import typer
 
 from esctl.config import Config
-from esctl.enums import Format
-from esctl.output import pretty_print
-from esctl.params import (
-    ExplainIncludeDiskInfoOption,
-    ExplainIncludeYesDecisionsOption,
-    ExplainPrimaryShardOption,
+from esctl.options import (
     IndexOption,
     NodeOption,
     ShardOption,
+    OutputOption,
+    Result,
 )
-from esctl.utils import get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -19,12 +16,36 @@ app = typer.Typer(rich_markup_mode="rich")
 @app.command(help="Provides an explanation for a shard’s current allocation.")
 def allocation_explain(
     ctx: typer.Context,
-    include_disk_info: ExplainIncludeDiskInfoOption = False,
-    include_yes_decisions: ExplainIncludeYesDecisionsOption = False,
+    include_disk_info: Annotated[
+        bool,
+        typer.Option(
+            "--include-disk-info",
+            "--disk-info",
+            "-d",
+            help="Returns information about disk usage and shard sizes.",
+        ),
+    ] = False,
+    include_yes_decisions: Annotated[
+        bool,
+        typer.Option(
+            "--include-yes-decisions",
+            "--yes-decisions",
+            "-y",
+            help="Returns YES decisions in explanation.",
+        ),
+    ] = False,
     node: NodeOption | None = None,
     shard: ShardOption | None = None,
     index: IndexOption | None = None,
-    primary: ExplainPrimaryShardOption = False,
+    primary: Annotated[
+        bool,
+        typer.Option(
+            "--primary",
+            "-p",
+            help="Returns explanation for the primary shard for the given shard ID",
+        ),
+    ] = False,
+    output: OutputOption = "json",
 ):
     client = Config.from_context(ctx).client
     if index is not None and len(index) > 1:
@@ -38,9 +59,6 @@ def allocation_explain(
         shard=shard,
         index=index_,
         primary=primary,
-    ).raw
-    pretty_print(
-        response,
-        format=Format.json,
-        pretty=get_root_ctx(ctx).obj.get("pretty", True),
     )
+    result: Result = ctx.obj["selector"](response)
+    result.print(output=output)

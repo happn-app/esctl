@@ -1,14 +1,13 @@
 import typer
 
 from esctl.config import Config
-from esctl.output import pretty_print
-from esctl.params import (
+from esctl.options import (
     NodeOption,
     ParentTaskIdOption,
     TaskIdArgument,
+    OutputOption,
+    Result,
 )
-from esctl.selectors import select_from_context
-from esctl.utils import get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -23,6 +22,7 @@ def cancel(
     wait_for_completion: bool = False,
     actions: list[str] | None = None,
     nodes: NodeOption | None = None,
+    output: OutputOption = "table",
 ):
     params = {
         "task_id": task_id,
@@ -32,10 +32,6 @@ def cancel(
         "nodes": nodes,
     }
     client = Config.from_context(ctx).client
-    response = client.tasks.cancel(**params).raw
-    response = select_from_context(ctx, response)
-    pretty_print(
-        response,
-        format=params["format"],
-        pretty=get_root_ctx(ctx).obj.get("pretty", True),
-    )
+    response = client.tasks.cancel(**params)
+    result: Result = ctx.obj["selector"](response)
+    result.print(output=output)

@@ -1,17 +1,32 @@
+from enum import Enum
+from typing import Annotated
+
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt
 import typer
 import typer.completion
-from typing_extensions import Annotated
 
-from esctl.enums import Shell
-from esctl.utils import get_root_ctx
+from esctl.config import Config
 
 from .add_context import app as add_context_app
 from .cache import app as cache_app
-from esctl.completions import complete_context
-from esctl.config import Config
+
+
+class Shell(str, Enum):
+    bash = "bash"
+    zsh = "zsh"
+    fish = "fish"
+    powershell = "powershell"
+
+
+
+def complete_context(ctx: typer.Context, incomplete: str):
+    cfg = Config.from_context(ctx)
+    return [
+        context for context in cfg.contexts.keys() if context.startswith(incomplete)
+    ]
+
 
 app = typer.Typer(rich_markup_mode="rich")
 app.add_typer(
@@ -40,7 +55,7 @@ def list_contexts(
         ),
     ] = False,
 ):
-    config: Config = ctx.obj["config"]
+    config = Config.from_context(ctx)
     console = Console()
     http_contexts = {
         name: context
@@ -96,9 +111,15 @@ def list_contexts(
 @app.command(help="Remove an ElasticSearch server from the esctl configuration file")
 def remove_context(
     ctx: typer.Context,
-    context_name: Annotated[str, typer.Argument(autocompletion=complete_context)],
+    context_name: Annotated[
+        str,
+        typer.Argument(
+            help="Name of the context to remove",
+            autocompletion=complete_context,
+        ),
+    ],
 ):
-    ctx.obj["config"].remove_context(context_name)
+    Config.from_context(ctx).remove_context(context_name)
     typer.echo(f"Context {context_name} removed")
 
 
@@ -114,7 +135,7 @@ def edit():
 #     alias_name: Annotated[str, typer.Argument(help="Name of the alias")],
 #     command: Annotated[str, typer.Argument(help="Command to alias, e.g. cat.indices")],
 # ):
-#     config: Config = ctx.obj["config"]
+#     config = Config.from_context(ctx)
 #     print(f"Adding an alias for [b blue]{command}[/]")
 #     arguments = {}
 #     command_callback = getattr(
@@ -165,7 +186,7 @@ def setup(ctx: typer.Context):
     print(
         "This setup wizard will guide you through setting up esctl after installations or updates."
     )
-    config: Config = get_root_ctx(ctx).obj["config"]
+    config = Config.from_context(ctx)
     if config.github_auth_command is None:
         github_auth_command = Prompt.ask(
             "To enable issue reporting, you need a command to authenticate with GitHub. What command do you want to use?",

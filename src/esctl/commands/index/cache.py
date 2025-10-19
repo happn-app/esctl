@@ -1,14 +1,11 @@
 import typer
 
 from esctl.config import Config
-from esctl.enums import Format
-from esctl.output import pretty_print
-from esctl.params import (
-    FormatOption,
+from esctl.options import (
     IndexArgument,
+    OutputOption,
+    Result,
 )
-from esctl.selectors import select_from_context
-from esctl.utils import get_root_ctx
 
 app = typer.Typer(
     name="cache",
@@ -22,13 +19,9 @@ app = typer.Typer(
 def clear(
     ctx: typer.Context,
     index: IndexArgument,
-    format: FormatOption = Format.text,
+    output: OutputOption = "json",
 ):
     client = Config.from_context(ctx).client
     response = client.indices.clear_cache(index=index)
-    response = select_from_context(ctx, response)
-    pretty_print(
-        response,
-        format=format,
-        pretty=get_root_ctx(ctx).obj.get("pretty", True),
-    )
+    result: Result = ctx.obj["selector"](response)
+    result.print(output)

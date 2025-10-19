@@ -1,13 +1,11 @@
+from typing import Annotated
 import typer
 from rich.prompt import Confirm
 
 from esctl.config import Config
-from esctl.enums import Format
-from esctl.output import pretty_print
-from esctl.params import (
-    RerouteDryRunOption,
-    RerouteExplainOption,
-    RerouteRetryFailedOption,
+from esctl.options import (
+    OutputOption,
+    Result,
 )
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -16,9 +14,25 @@ app = typer.Typer(rich_markup_mode="rich")
 @app.command()
 def reroute(
     ctx: typer.Context,
-    dry_run: RerouteDryRunOption = False,
-    explain: RerouteExplainOption = False,
-    retry_failed: RerouteRetryFailedOption = False,
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            help="If true, then the request simulates the operation only and returns the resulting state.",
+        ),
+    ] = False,
+    explain: Annotated[
+        bool,
+        typer.Option(
+            help="If true, then the response contains an explanation of why the commands can or cannot be executed. ",
+        ),
+    ] = False,
+    retry_failed: Annotated[
+        bool,
+        typer.Option(
+            help="If true, then retries allocation of shards that are blocked due to too many subsequent allocation failures. ",
+        ),
+    ] = False,
+    output: OutputOption = "json",
 ):
     client = Config.from_context(ctx).client
     if not dry_run:
@@ -32,5 +46,6 @@ def reroute(
             raise typer.Abort()
     response = client.cluster.reroute(
         dry_run=dry_run, explain=explain, retry_failed=retry_failed
-    ).raw
-    pretty_print(response, format=Format.json)
+    )
+    result: Result = ctx.obj["selector"](response)
+    result.print(output=output)

@@ -148,7 +148,6 @@ def KubeNodeClassFactory(
                 kube_namespace,
                 ports=str(self.port),
             )
-            pf.socket(self.port)
             return pf.socket(self.port)
 
     class KubePortForwardConnectionPool(urllib3.connectionpool.HTTPConnectionPool):

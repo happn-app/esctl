@@ -1,37 +1,78 @@
-from contextlib import suppress
+from itertools import product
 from textwrap import dedent
+from typing import Annotated, Iterable
 
 import typer
 
 from esctl.config import Config
-from esctl.enums import Format
-from esctl.output import pretty_print
-from esctl.params import (
-    FormatOption,
-    HeaderOption,
+from esctl.options import (
     NodeOption,
     ParentTaskIdOption,
-    SortOption,
     TimeOption,
+    OutputOption,
+    Result,
 )
-from esctl.selectors import select_from_context
-from esctl.utils import get_cat_base_params_from_context, get_root_ctx
 
 app = typer.Typer(rich_markup_mode="rich")
 
 
-def formatter(header: list[str], row: list[str]) -> list[str]:
-    with suppress(ValueError):
-        state_idx = header.index("state")
-        if row[state_idx] == "STARTED":
-            row[state_idx] = f"[b green]{row[state_idx]}[/]"
-        elif row[state_idx] == "RELOCATING":
-            row[state_idx] = f"[b yellow]{row[state_idx]}[/]"
-        elif row[state_idx] == "INITIALIZING":
-            row[state_idx] = f"[b blue]{row[state_idx]}[/]"
-        elif row[state_idx] == "UNASSIGNED":
-            row[state_idx] = f"[b red]{row[state_idx]}[/]"
-    return row
+def formatter(column: str, value: str) -> str:
+    if column == "state":
+        if value == "STARTED":
+            return "[b green]STARTED[/]"
+        elif value == "RELOCATING":
+            return "[b yellow]RELOCATING[/]"
+        elif value == "INITIALIZING":
+            return "[b blue]INITIALIZING[/]"
+        elif value == "UNASSIGNED":
+            return "[b red]UNASSIGNED[/]"
+    return value
+
+
+def complete_column(incomplete: str) -> list[tuple[str, str]]:
+    columns = {
+        "id": "id of the task with the node",
+        "action": "task action",
+        "task_id": "unique task id",
+        "parent_task_id": "parent task id",
+        "type": "task type",
+        "start_time": "start time in ms",
+        "timestamp": "start time in HH:MM:SS",
+        "running_time_ns": "running time ns",
+        "running_time": "running time",
+        "node_id": "unique node id",
+        "ip": "ip address",
+        "port": "bound transport port",
+        "node": "node name",
+        "version": "es version",
+        "x_opaque_id": "X-Opaque-ID header",
+    }
+    return [
+        (column, description)
+        for column, description in columns.items()
+        if column.startswith(incomplete)
+    ]
+
+
+def complete_sort(incomplete: str) -> Iterable[str | tuple[str, str]]:
+    columns = list(complete_column(incomplete.split(":")[0]))
+    orders = ["asc", "desc"]
+    return [
+        (f"{column}:{order}", description)
+        for (column, description), order in product(columns, orders)
+        if column.startswith(incomplete.split(":")[0])
+    ]
+
+
+SortOption = Annotated[
+    list[str] | None,
+    typer.Option(
+        "--sort",
+        "-s",
+        autocompletion=complete_sort,
+        help="How to sort the response",
+    ),
+]
 
 
 @app.command(
@@ -45,29 +86,34 @@ def formatter(header: list[str], row: list[str]) -> list[str]:
 def tasks(
     ctx: typer.Context,
     detailed: bool = False,
-    header: HeaderOption | None = None,
+    header: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--header",
+            "-h",
+            autocompletion=complete_column,
+            help="Columns to include in the response",
+        ),
+    ] = None,
     sort: SortOption | None = None,
-    format: FormatOption = Format.text,
-    nodes: NodeOption | None = None,
+    nodes: NodeOption = None,
     time: TimeOption | None = None,
-    parent_task_id: ParentTaskIdOption | None = None,
+    parent_task_id: ParentTaskIdOption = None,
+    output: OutputOption = "table",
 ):
-    params = get_cat_base_params_from_context(ctx, format)
-    params.update(
-        {
-            "h": header,
-            "s": sort,
-            "time": time,
-            "detailed": detailed,
-            "nodes": nodes,
-            "parent_task_id": parent_task_id,
-        }
-    )
+    params = {
+        "h": header,
+        "s": sort,
+        "time": time,
+        "detailed": detailed,
+        "nodes": nodes,
+        "parent_task_id": parent_task_id,
+        "format": "json",
+    }
     client = Config.from_context(ctx).client
     response = client.cat.tasks(**params)
-    response = select_from_context(ctx, response)
-    pretty_print(
-        response,
-        format=params["format"],
-        pretty=get_root_ctx(ctx).obj.get("pretty", True),
+    result: Result = ctx.obj["selector"](response)
+    result.print(
+        output=output,
+        formatter=formatter,
     )

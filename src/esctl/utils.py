@@ -1,4 +1,3 @@
-import functools
 import importlib.metadata
 import os
 import shlex
@@ -6,37 +5,13 @@ from string import Formatter
 from datetime import timedelta
 import sys
 import traceback
-from typing import Any
 
 import kubernetes
 import requests
 from rich import print
-import typer
+from rich.prompt import Confirm
 
 from esctl.constants import ISSUE_TEMPLATE
-from esctl.config.utils import get_root_ctx
-from esctl.enums import Format
-
-
-@functools.lru_cache()
-def get_cat_base_params_from_context(
-    ctx: typer.Context, format: Format
-) -> dict[str, Any]:
-    ctx = get_root_ctx(ctx)
-    has_json_select = (
-        ctx.params.get("jsonpath") is not None or ctx.params.get("jmespath") is not None
-    )
-    has_yaml_select = ctx.params.get("yamlpath") is not None
-    pretty = ctx.params.get("pretty", True)
-    if has_json_select:
-        format = Format.json
-    if has_yaml_select:
-        format = Format.yaml
-    return {
-        "format": format,
-        "pretty": True,
-        "v": format == Format.text and not has_json_select and pretty,
-    }
 
 
 def strfdelta(tdelta: timedelta):
@@ -77,8 +52,16 @@ def strfdelta(tdelta: timedelta):
     return f.format(fmt, **values)
 
 
-def create_github_issue(exception: Exception, token: str, es_version: str) -> None:
+def try_create_github_issue(
+    exception: Exception, token: str | None, es_version: str
+) -> None:
     """Create a GitHub issue for the given exception using the provided token."""
+    if token is None:
+        return
+    if os.getenv("ESCTL_DISABLE_ISSUE_REPORTING", False):
+        return
+    if not Confirm.ask("Submit a GitHub issue?", default=True):
+        return
     url = "https://api.github.com/repos/happn-app/esctl/issues"
     headers = {
         "Authorization": f"Bearer {token}",

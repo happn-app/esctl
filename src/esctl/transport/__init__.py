@@ -1,14 +1,13 @@
-from elasticsearch7 import Elasticsearch as Elasticsearch7
 from elasticsearch8 import Elasticsearch as Elasticsearch8
 from elasticsearch9 import Elasticsearch as Elasticsearch9
 from elastic_transport import NodeConfig, Transport
 
 from .transport import KubeNodeClassFactory, HTTPNodeClassFactory
-from .serializers import SERIALIZERS7, SERIALIZERS8, SERIALIZERS9
+from .serializers import SERIALIZERS8, SERIALIZERS9
 from .cache import Cache
 
 
-Elasticsearch = Elasticsearch7 | Elasticsearch8 | Elasticsearch9
+Elasticsearch = Elasticsearch8 | Elasticsearch9
 
 
 def KubeClientFactory(
@@ -34,10 +33,10 @@ def KubeClientFactory(
     major = next(int(part) for part in version.split("."))
     match major:
         case 7:
-            return Elasticsearch7(
+            return Elasticsearch9(
                 "http://127.0.0.1:9200",
                 node_class=Node,
-                serializers=SERIALIZERS7,
+                serializers=SERIALIZERS9,
             )
         case 8:
             return Elasticsearch8(
@@ -75,12 +74,13 @@ def HTTPClientFactory(
     # Already JSON decoded
     version = response.body["version"]["number"]
     major = next(int(part) for part in version.split("."))
+    print("Detected Elasticsearch version:", version)
     match major:
         case 7:
-            return Elasticsearch7(
+            return Elasticsearch8(
                 host,
                 node_class=Node,
-                serializers=SERIALIZERS7,
+                serializers=SERIALIZERS8,
             )
         case 8:
             return Elasticsearch8(
