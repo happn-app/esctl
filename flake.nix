@@ -1,117 +1,90 @@
 {
-  description = "Esctl - command-line utility to connect and administrate elasticsearch clusters";
+  description = "esctl application using uv2nix";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
-    self,
     nixpkgs,
-    flake-utils,
-  }:
-    flake-utils.lib.eachDefaultSystem (
+    pyproject-nix,
+    uv2nix,
+    pyproject-build-systems,
+    ...
+  }: let
+    inherit (nixpkgs) lib;
+    forAllSystems = lib.genAttrs lib.systems.flakeExposed;
+
+    workspace = uv2nix.lib.workspace.loadWorkspace {workspaceRoot = ./.;};
+
+    overlay = workspace.mkPyprojectOverlay {
+      sourcePreference = "wheel";
+    };
+
+    editableOverlay = workspace.mkEditablePyprojectOverlay {
+      root = "$REPO_ROOT";
+    };
+
+    pythonSets = forAllSystems (
       system: let
-        pkgs = import nixpkgs {
-          inherit system;
-        };
+        pkgs = nixpkgs.legacyPackages.${system};
+        python = pkgs.python3;
+      in
+        (pkgs.callPackage pyproject-nix.build.packages {
+          inherit python;
+        }).overrideScope
+        (
+          lib.composeManyExtensions [
+            pyproject-build-systems.overlays.wheel
+            overlay
+          ]
+        )
+    );
+  in {
+    devShells = forAllSystems (
+      system: let
+        pkgs = nixpkgs.legacyPackages.${system};
+        pythonSet = pythonSets.${system}.overrideScope editableOverlay;
+        virtualenv = pythonSet.mkVirtualEnv "esctl-dev-env" workspace.deps.all;
       in {
-        packages = {
-          default = self.packages.${system}.esctl;
-
-          esctl = pkgs.python313Packages.buildPythonApplication {
-            pname = "esctl";
-            version =
-              if self ? shortRev && self.shortRev != null && self.shortRev != ""
-              then self.shortRev
-              else "dirty";
-            src = ./.;
-            format = "pyproject";
-            build-system = with pkgs.python313Packages; [
-              poetry-core
-            ];
-
-            propagatedBuildInputs = with pkgs.python313.pkgs; [
-              self.packages.${system}.yamlpath
-              rich
-              requests
-              typer
-              jmespath
-              elasticsearch
-              pydantic
-              jsonpath-ng
-              kubernetes
-              ipython
-              blake3
-              orjson
-            ];
-
-            meta = with pkgs.lib; {
-              description = "Command-line utility to connect and administrate elasticsearch clusters";
-              license = licenses.asl20;
-              platforms = platforms.all;
-            };
+        default = pkgs.mkShell {
+          packages = [
+            virtualenv
+            pkgs.uv
+          ];
+          env = {
+            UV_NO_SYNC = "1";
+            UV_PYTHON = pythonSet.python.interpreter;
+            UV_PYTHON_DOWNLOADS = "never";
           };
-
-          # ruamel-yaml is too up to date in nixpkgs, so we vendor it here for yamlpath
-          ruamel-yaml = pkgs.python313Packages.buildPythonPackage rec {
-            pname = "ruamel.yaml";
-            version = "0.17.21";
-            pyproject = true;
-            src = pkgs.fetchPypi {
-              inherit pname version;
-              sha256 = "sha256-i3zml6LyEnUqNcGsQURx3BbEJMlXO+SSa1b/P10jt68=";
-            };
-            doCheck = false;
-            propagatedBuildInputs = with pkgs.python313.pkgs; [
-              setuptools
-            ];
-            meta = with pkgs.lib; {
-              description = "ruamel.yaml is a YAML parser/emitter that supports roundtrip preservation of comments, seq/map flow style, and map key order";
-              license = licenses.mit;
-              platforms = platforms.all;
-            };
-          };
-
-          # yamlpath is not in nixpkgs, so we vendor it here
-          yamlpath = pkgs.python313Packages.buildPythonPackage rec {
-            pname = "yamlpath";
-            version = "3.8.2";
-            pyproject = true;
-            src = pkgs.fetchPypi {
-              inherit pname version;
-              sha256 = "sha256-TzDMIUtQhdSw53VuBsOvOuWJ7N6WUNKtp+HTRexP2k8=";
-            };
-            propagatedBuildInputs = with pkgs.python313.pkgs; [
-              setuptools
-              python-dateutil
-              self.packages.${system}.ruamel-yaml
-            ];
-            doCheck = false;
-            meta = with pkgs.lib; {
-              description = "Command-line get/set/merge/validate/scan/convert/diff processors for YAML/JSON/Compatible data using powerful, intuitive, command-line friendly syntax";
-              license = licenses.isc;
-              platforms = platforms.all;
-            };
-          };
+          shellHook = ''
+            unset PYTHONPATH
+            export REPO_ROOT=$(git rev-parse --show-toplevel)
+          '';
         };
-
-        devShells = {
-          # nix develop
-          default = pkgs.mkShell {
-            inputsFrom = [self.packages.${system}.esctl];
-            packages = with pkgs; [
-              poetry
-              ruff
-              python313Packages.mkdocs
-              python313Packages.pymdown-extensions
-              python313Packages.mike
-              python313Packages.mkdocs-awesome-nav
-            ];
-          };
-        };
-        formatter = pkgs.alejandra;
       }
     );
+
+    packages = forAllSystems (system: {
+      default = pythonSets.${system}.mkVirtualEnv "esctl-env" workspace.deps.default;
+    });
+  };
 }
