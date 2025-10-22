@@ -16,7 +16,6 @@ on:
     types:
       - published
       - released
-      - prereleased
 
 jobs:
   build:
