@@ -112,10 +112,10 @@ jobs:
           git config --global --unset-all http.https://github.com/.extraheader || true
           git config --unset-all http.https://github.com/.extraheader || true
           cat <<EOF > ~/.netrc
-machine github.com
-  login x-access-token
-  password ${CI_PAT}
-EOF
+            machine github.com
+              login x-access-token
+              password ${CI_PAT}
+            EOF
           chmod 600 ~/.netrc
 
       - name: Push release commit to stable branch
