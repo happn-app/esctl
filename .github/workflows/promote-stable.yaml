@@ -94,29 +94,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ env.PROMOTION_REF }}
-          persist-credentials: false
-
-      - name: Configure Git
-        env:
-          CI_PAT: ${{ secrets.PAT_HAPPN_CI_ESCTL_WRITE }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          if [ -z "${CI_PAT}" ]; then
-            echo "Missing PAT_HAPPN_CI_ESCTL_WRITE secret." >&2
-            exit 1
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global credential.helper ""
-          git config --global --unset-all http.https://github.com/.extraheader || true
-          git config --unset-all http.https://github.com/.extraheader || true
-          cat <<EOF > ~/.netrc
-            machine github.com
-              login x-access-token
-              password ${CI_PAT}
-            EOF
-          chmod 600 ~/.netrc
+          token: ${{ secrets.PAT_HAPPN_CI_ESCTL_WRITE }}
 
       - name: Push release commit to stable branch
         env:
