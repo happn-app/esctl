@@ -1,6 +1,17 @@
 name: Promote Stable
 
+concurrency:
+  group: promote-stable
+  cancel-in-progress: true
+
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to promote (leave empty to use latest published release)
+        required: false
+        default: ""
+        type: string
   release:
     types:
       - published
@@ -12,7 +23,8 @@ jobs:
     name: Build esctl
     permissions:
       contents: read
-      id-token: write
+    outputs:
+      promotion_ref: ${{ steps.resolve-tag.outputs.tag }}
     strategy:
       fail-fast: true
       matrix:
@@ -21,8 +33,40 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - name: Determine release tag
+        id: resolve-tag
+        run: |
+          set -euo pipefail
+          if [ -n "${RELEASE_TAG}" ]; then
+            tag="${RELEASE_TAG}"
+          elif [ -n "${INPUT_TAG}" ]; then
+            tag="${INPUT_TAG}"
+          fi
+          if [ -z "${tag:-}" ]; then
+            tag="$(
+              curl -fsSL \
+                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" \
+              | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])'
+            )"
+          fi
+          if [ -z "${tag:-}" ]; then
+            echo "Unable to determine the release tag to promote." >&2
+            exit 1
+          fi
+          echo "PROMOTION_REF=${tag}" >> "$GITHUB_ENV"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+          INPUT_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || '' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          ref: ${{ env.PROMOTION_REF }}
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
@@ -41,22 +85,33 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+    env:
+      PROMOTION_REF: ${{ needs.build.outputs.promotion_ref }}
     steps:
       - name: Checkout release commit
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ env.PROMOTION_REF }}
 
       - name: Configure Git
+        env:
+          CI_PAT: ${{ secrets.PAT_HAPPN_CI_ESCTL_WRITE }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
+          set -euo pipefail
+          if [ -z "${CI_PAT}" ]; then
+            echo "Missing PAT_HAPPN_CI_ESCTL_WRITE secret." >&2
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${CI_PAT}@github.com/${GITHUB_REPOSITORY}.git"
 
       - name: Push release commit to stable branch
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_ASKPASS: /bin/true
         run: |-
           git fetch origin stable || true
           git checkout -B stable
