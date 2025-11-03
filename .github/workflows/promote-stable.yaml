@@ -16,6 +16,9 @@ on:
     types:
       - published
       - released
+  schedule:
+  # every saturday at 02:00 UTC
+    - cron: '0 2 * * 6'
 
 jobs:
   build:
