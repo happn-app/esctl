@@ -64,15 +64,38 @@ setattr(snapshot_app, "root", app)
 setattr(shell_app, "root", app)
 setattr(exec_app, "root", app)
 
+
+def no_context_guard_callback():
+    if cfg.current_context is None or cfg.current_context == "":
+        print("[red]Error:[/] No context set. Please set a context with --context first.")
+        raise typer.Exit(code=1)
+
+    if cfg.contexts is None or len(cfg.contexts) == 0:
+        print("[red]Error:[/] No contexts defined in configuration.")
+        raise typer.Exit(code=1)
+
+    if cfg.current_context not in cfg.contexts:
+        print(
+            f"[red]Error:[/] Context [b]{cfg.current_context}[/] not found in configuration."
+        )
+        print("Available contexts:")
+        for context in cfg.contexts:
+            print(f" - {context}")
+        raise typer.Exit(code=1)
+    return
+
+
 app.add_typer(
     cat_app,
     name="cat",
     help="Compact and aligned text (CAT) APIs for Elasticsearch",
+    callback=no_context_guard_callback,
 )
 app.add_typer(
     cluster_app,
     name="cluster",
     help="Elasticsearch Cluster management APIs",
+    callback=no_context_guard_callback,
 )
 app.add_typer(
     config_app,
@@ -83,36 +106,43 @@ app.add_typer(
     task_app,
     name="task",
     help="Elasticsearch Task management APIs",
+    callback=no_context_guard_callback,
 )
 app.add_typer(
     index_app,
     name="index",
     help="Elasticsearch Index management APIs",
+    callback=no_context_guard_callback,
 )
 app.add_typer(
     reindex_app,
     name="reindex",
     help="Reindex from one index to another",
+    callback=no_context_guard_callback,
 )
 app.add_typer(
     troubleshoot_app,
     name="troubleshoot",
     help="Troubleshoot Elasticsearch cluster issues",
+    callback=no_context_guard_callback,
 )
 app.add_typer(
     snapshot_app,
     name="snapshot",
     help="Elasticsearch Snapshot and Restore APIs",
+    callback=no_context_guard_callback,
 )
 app.add_typer(
     shell_app,
     name="shell",
     help="Start an interactive shell to interact with your cluster",
+    callback=no_context_guard_callback,
 )
 app.add_typer(
     exec_app,
     name="exec",
     help="Execute a python script to interact with your cluster",
+    callback=no_context_guard_callback,
 )
 
 cfg = Config.load()
@@ -194,25 +224,21 @@ def callback(
     if context is not None:
         cfg.current_context = context
 
-    if cfg.current_context not in cfg.contexts:
-        print(
-            f"[red]Error:[/] Context [b]{cfg.current_context}[/] not found in configuration."
-        )
-        raise typer.Exit(code=1)
-    conf: ESConfigType = cfg.contexts[cfg.current_context]
+    conf: ESConfigType | None = cfg.contexts.get(cfg.current_context)
     if version:
         from esctl import __version__ as esctl_version
         from kubernetes import __version__ as k8s_version
         import sys
 
-        info = conf.client.info()
+        info = conf.client.info() if conf is not None else {}
         if isinstance(info, dict):
             es_version = info.get("version", {}).get("number", "unknown")
         else:
             es_version = info.body.get("version", {}).get("number", "unknown")
 
+        current_context = cfg.current_context if cfg.current_context else "None"
         print(f"esctl version         : [blue]{esctl_version}[/]")
-        print(f"Current Context       : [blue]{conf.name}[/]")
+        print(f"Current Context       : [blue]{current_context}[/]")
         print(f"Elasticsearch version : [blue]{es_version}[/]")
         print(f"Kubernetes version    : [blue]{k8s_version}[/]")
         print(f"Python version        : [blue]{sys.version}[/]")
