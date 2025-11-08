@@ -121,20 +121,15 @@ jobs:
         python-version: [ "3.11", "3.12", "3.13", "3.14" ]
         info:
           - dockerfile: Dockerfile.alpine
-            suffix: alpine
-            os_version: ""
+            flavor: alpine
           - dockerfile: Dockerfile.debian
-            suffix: bookworm
-            os_version: bookworm
+            flavor: bookworm
           - dockerfile: Dockerfile.debian
-            suffix: trixie
-            os_version: trixie
+            flavor: trixie
           - dockerfile: Dockerfile.debian
-            suffix: bookworm-slim
-            os_version: bookworm-slim
+            flavor: bookworm-slim
           - dockerfile: Dockerfile.debian
-            suffix: trixie-slim
-            os_version: trixie-slim
+            flavor: trixie-slim
 
     steps:
       - name: ⬇️ Checkout repository
@@ -153,6 +148,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.11.1
 
+      - name: 📦 Add docker metadata
+        uses: docker/metadata-action@v5.8.0
+        id: meta
+        with:
+          images: |
+            ghcr.io/happn-app/esctl
+          flavor: |
+            latest=auto
+            suffix=-${{ matrix.info.flavor }}
+          tags: |
+            type=semver,pattern={{raw}}-py${{ matrix.python-version }},value=${{ needs.release.outputs.version }}
+          labels: |
+            org.opencontainers.image.source="https://github.com/happn-app/esctl"
+            org.opencontainers.image.description="esctl is a CLI tool to manage Elasticsearch clusters on any infrastructure."
+            org.opencontainers.image.licenses="Apache-2.0"
+            org.opencontainers.image.authors="Happn <ops@happn.fr>"
+            org.opencontainers.image.vendor="Happn"
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
       - name: 🐳 Build and push Docker image
         uses: docker/build-push-action@v6.18.0
         with:
@@ -160,6 +175,7 @@ jobs:
           file: ./${{ matrix.info.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true
+          annotations: ${{ steps.meta.outputs.annotations }}
           tags: ghcr.io/happn-app/esctl:${{ needs.release.outputs.version }}-py${{ matrix.python-version }}-${{ matrix.info.suffix }}
           build-args: |
             OS_VERSION=${{ matrix.info.os_version }}
