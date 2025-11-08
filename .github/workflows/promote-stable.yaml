@@ -10,7 +10,7 @@ on:
       tag:
         description: Release tag to promote (leave empty to use latest published release)
         required: false
-        default: ""
+        default: ''
         type: string
   release:
     types:
@@ -18,7 +18,7 @@ on:
       - released
   schedule:
   # every saturday at 02:00 UTC
-    - cron: '0 2 * * 6'
+    - cron: 0 2 * * 6
 
 jobs:
   build:

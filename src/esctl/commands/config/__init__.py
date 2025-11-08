@@ -20,7 +20,6 @@ class Shell(str, Enum):
     powershell = "powershell"
 
 
-
 def complete_context(ctx: typer.Context, incomplete: str):
     cfg = Config.from_context(ctx)
     return [

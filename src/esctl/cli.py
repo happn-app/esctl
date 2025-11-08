@@ -67,7 +67,9 @@ setattr(exec_app, "root", app)
 
 def no_context_guard_callback():
     if cfg.current_context is None or cfg.current_context == "":
-        print("[red]Error:[/] No context set. Please set a context with --context first.")
+        print(
+            "[red]Error:[/] No context set. Please set a context with --context first."
+        )
         raise typer.Exit(code=1)
 
     if cfg.contexts is None or len(cfg.contexts) == 0:

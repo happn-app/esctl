@@ -13,7 +13,8 @@ app = typer.Typer()
 def complete_repository(ctx: typer.Context, incomplete: str) -> Iterable[str]:
     client = Config.from_context(ctx).client
     return [
-        repo for repo in client.snapshot.get_repository(name=f"{incomplete}*").body
+        repo
+        for repo in client.snapshot.get_repository(name=f"{incomplete}*").body
         if repo.startswith(incomplete)
     ]
 
