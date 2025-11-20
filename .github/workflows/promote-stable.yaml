@@ -66,7 +66,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ env.PROMOTION_REF }}
 
@@ -92,7 +92,7 @@ jobs:
       PROMOTION_REF: ${{ needs.build.outputs.promotion_ref }}
     steps:
       - name: Checkout release commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ env.PROMOTION_REF }}
