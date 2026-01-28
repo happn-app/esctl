@@ -1,0 +1,14 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: esctl
+  annotations:
+    github.com/project-slug: happn-app/esctl
+    backstage.io/techdocs-ref: dir:.
+    jira/project-key: OPSTSK
+    jira/component: esctl
+spec:
+  type: cli
+  lifecycle: production
+  owner: ops
