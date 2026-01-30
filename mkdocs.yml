@@ -16,6 +16,7 @@ plugins:
   - awesome-nav
   - mkdocs-typer2:
       pretty: true
+      engine: native
   - mike:
       alias_type: redirect
       version_selector: true

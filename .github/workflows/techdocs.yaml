@@ -26,6 +26,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7.2.1
+        with:
+          enable-cache: true
+
       - name: Install techdocs-cli
         run: sudo npm install -g @techdocs/cli
 
@@ -45,10 +50,17 @@ jobs:
             mkdocs-toggle-sidebar-plugin \
             git+https://github.com/jldiaz/mkdocs-plugin-tags.git \
             mkdocs-awesome-nav \
-            mkdocs-typer
+            mkdocs-typer2 \
+            mike
+
+      - name: Install esctl dependencies
+        run: uv sync
 
       - name: Generate docs site
-        run: techdocs-cli generate --no-docker --verbose
+        run: |
+          export PATH="${{ github.workspace }}/.venv/bin:$PATH"
+          techdocs-cli generate --no-docker --verbose
+
       - name: Generate Google Application Credentials
         env:
           GCP_GITHUB_SA_CREDENTIALS: ${{ secrets.GCP_GITHUB_SA_CREDENTIALS }}
