@@ -160,8 +160,9 @@ jobs:
           file: ./${{ matrix.info.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/happn-app/esctl:${{ needs.release.outputs.version }}-py${{ matrix.python-version }}-${{ matrix.info.suffix
-            }}
+          tags: >
+            ghcr.io/happn-app/esctl:
+            ${{ needs.release.outputs.version }}-py${{ matrix.python-version }}-${{ matrix.info.suffix }}
           build-args: |-
             OS_VERSION=${{ matrix.info.os_version }}
             GIT_REV=${{ github.sha }}
