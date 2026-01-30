@@ -1,5 +1,6 @@
 ---
 name: Publish TechDocs Site
+
 on:
   workflow_dispatch:
       inputs: {}
@@ -10,12 +11,27 @@ on:
       - docs/**
       - mkdocs.yml
       - .github/workflows/techdocs.yaml
+
 jobs:
   publish-techdocs-site:
-    runs-on: arc-runner-techdocs
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.2
+      - name: Setup Node.js
+        uses: actions/setup-node@v6.2.0
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install techdocs-cli
+        run: sudo npm install -g @techdocs/cli
+
+      - name: Install mkdocs and mkdocs plugins
+        run: python -m pip install mkdocs-techdocs-core==1.*
+
       - name: Generate docs site
         run: techdocs-cli generate --no-docker --verbose
       - name: Generate Google Application Credentials
@@ -31,6 +47,7 @@ jobs:
               --gcsBucketRootPath tech-docs \
               --storage-name 1e42-tools-backstage \
               --entity default/Component/esctl
+
       - name: Clean up Google Application Credentials
         if: always()
         run: |
