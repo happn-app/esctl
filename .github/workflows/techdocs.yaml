@@ -63,7 +63,7 @@ jobs:
 
       - name: Generate Google Application Credentials
         env:
-          GCP_GITHUB_SA_CREDENTIALS: ${{ secrets.GCP_GITHUB_SA_CREDENTIALS }}
+          GCP_GITHUB_SA_CREDENTIALS: ${{ secrets.GCP_GITHUB_SA_CREDENTIALS_FOR_PUBLIC_REPOS }}
         run: |
           echo "${GCP_GITHUB_SA_CREDENTIALS}" > ./gcp-github-sa-credentials.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp-github-sa-credentials.json" >> $GITHUB_ENV
