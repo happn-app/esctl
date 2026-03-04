@@ -46,7 +46,7 @@ license-files = ["LICENSE"]
 esctl = "esctl.cli:app"
 
 [dependency-groups]
-dev = ["ruff>=0.14.0,<0.15"]
+dev = ["ruff>=0.14.0,<0.16"]
 docs = [
     "mkdocs>=1.6.1,<2",
     "pymdown-extensions>=10.16.1,<11",
