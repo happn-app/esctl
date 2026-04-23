@@ -34,7 +34,7 @@ dependencies = [
     "kubernetes >=34.1.0",
     "ipython >=9.6.0",
     "blake3 >=1.0.8",
-    "orjson >=3.11.3,<4",
+    "orjson >=3.11.8,<4",
     "elasticsearch8",
     "elasticsearch9",
     "kubernetes >=34.1.0,<35",
