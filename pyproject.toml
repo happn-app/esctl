@@ -52,7 +52,7 @@ docs = [
     "pymdown-extensions>=10.16.1,<11",
     "mkdocs-techdocs-core>=1.6.1,<2",
     "mike>=2.2.0,<3",
-    "mkdocs-typer2>=0.1.6,<0.3",
+    "mkdocs-typer2>=0.3.0,<0.4",
     "mkdocs-awesome-nav>=3.2.0,<4",
 ]
 
