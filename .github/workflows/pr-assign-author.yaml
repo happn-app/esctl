@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Assign PR author
-        uses: pozil/auto-assign-issue@v2.2.0
+        uses: pozil/auto-assign-issue@v3.0.0
         with:
           assignees: ${{ github.actor }}
           allowSelfAssign: true
