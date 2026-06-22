@@ -49,7 +49,7 @@ esctl = "esctl.cli:app"
 dev = ["ruff>=0.15.12,<0.16"]
 docs = [
     "mkdocs>=1.6.1,<2",
-    "pymdown-extensions>=10.16.1,<11",
+    "pymdown-extensions>=10.21.3,<11",
     "mkdocs-techdocs-core>=1.6.1,<2",
     "mike>=2.2.0,<3",
     "mkdocs-typer2>=0.3.0,<0.4",
