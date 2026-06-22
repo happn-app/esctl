@@ -26,7 +26,7 @@ classifiers = [
 ]
 dependencies = [
     "rich >=15.0.0",
-    "requests >=2.32.5,<3",
+    "requests >=2.34.2,<3",
     "typer >=0.25.1",
     "jmespath >=1.1.0,<2",
     "pydantic >=2.13.4",
