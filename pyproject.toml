@@ -38,7 +38,7 @@ dependencies = [
     "elasticsearch8",
     "elasticsearch9",
     "kubernetes >=34.1.0,<36",
-    "ruamel.yaml >=0.18.15",
+    "ruamel.yaml >=0.19.1",
 ]
 license-files = ["LICENSE"]
 
