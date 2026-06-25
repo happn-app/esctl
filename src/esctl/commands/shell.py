@@ -9,6 +9,7 @@ import typer
 from ruamel.yaml import YAML
 from pathlib import Path
 import json
+import time
 
 from esctl.transport import Cache
 from esctl.config import Config as EsctlConfig
@@ -83,6 +84,7 @@ def shell(
         "cache": Cache(context_name),
         "Path": Path,
         "cwd": working_directory,
+        "time": time,
     }
     es_version = client.info().get("version", {}).get("number", "unknown")
     editor = os.getenv("EDITOR", "vi")
