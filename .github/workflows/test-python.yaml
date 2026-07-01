@@ -19,7 +19,7 @@ on:
       - uv.lock
   schedule:
     # Nightly full run including the slow k3s tier.
-    - cron: '0 3 * * *'
+    - cron: 0 3 * * *
   workflow_dispatch:
 
 env:
