@@ -1,5 +1,6 @@
 import typer
 
+from .aliases import app as aliases_app
 from .allocation import app as allocation_app
 from .health import app as health_app
 from .indices import app as indices_app
@@ -19,3 +20,4 @@ app.add_typer(recovery_app)
 app.add_typer(shards_app)
 app.add_typer(tasks_app)
 app.add_typer(templates_app)
+app.add_typer(aliases_app)
