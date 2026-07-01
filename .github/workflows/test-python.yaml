@@ -1,0 +1,94 @@
+name: Test Python
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/test-python.yaml
+      - '**/*.py'
+      - pyproject.toml
+      - uv.lock
+  pull_request:
+    branches:
+      - master
+    paths:
+      - .github/workflows/test-python.yaml
+      - '**/*.py'
+      - pyproject.toml
+      - uv.lock
+  schedule:
+    # Nightly full run including the slow k3s tier.
+    - cron: 0 3 * * *
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.14'
+
+jobs:
+  unit:
+    name: unit (no docker)
+    runs-on: arc-runner-tiny
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Run unit tests
+        run: uv run --group test pytest tests/unit -m "not integration and not kube"
+
+  integration:
+    name: integration (elasticsearch container)
+    runs-on: arc-runner
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Run Elasticsearch integration tests
+        run: uv run --group test pytest tests/integration -m integration
+
+  kube:
+    name: kube (k3s port-forward, slow)
+    runs-on: arc-runner
+    # Slow and heavier; run on the nightly schedule (or manual dispatch), and
+    # don't fail the overall pipeline on flakiness.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Increase vm.max_map_count for Elasticsearch
+        run: sudo sysctl -w vm.max_map_count=262144
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Run k3s port-forward tests
+        run: uv run --group test pytest tests/kube -m kube
