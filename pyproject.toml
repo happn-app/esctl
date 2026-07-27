@@ -46,7 +46,7 @@ license-files = ["LICENSE"]
 esctl = "esctl.cli:app"
 
 [dependency-groups]
-dev = ["ruff>=0.15.20,<0.16"]
+dev = ["ruff>=0.16.0,<0.17"]
 test = [
     "pytest>=8.0.0,<9",
     "pytest-mock>=3.14.0,<4",
