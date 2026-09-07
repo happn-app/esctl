@@ -54,7 +54,7 @@ test = [
 ]
 docs = [
     "mkdocs>=1.6.1,<2",
-    "pymdown-extensions>=10.0,<12",
+    "pymdown-extensions>=11.0.1,<12",
     "mkdocs-techdocs-core>=1.7.0,<2",
     "mike>=2.2.0,<3",
     "mkdocs-typer2>=0.4.1,<0.5",
