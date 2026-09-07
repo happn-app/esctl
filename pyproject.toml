@@ -48,7 +48,7 @@ esctl = "esctl.cli:app"
 [dependency-groups]
 dev = ["ruff>=0.16.0,<0.17"]
 test = [
-    "pytest>=9.0.3,<10",
+    "pytest>=9.1.1,<10",
     "pytest-mock>=3.14.0,<4",
     "testcontainers[elasticsearch,k3s]>=4.15.0,<5",
 ]
