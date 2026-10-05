@@ -43,6 +43,18 @@
       root = "$REPO_ROOT";
     };
 
+    # watchdog has no wheel for every interpreter/platform pair (e.g. cp314 on
+    # macOS), and its sdist does not declare setuptools as a build dependency.
+    pyprojectOverrides = final: prev: {
+      watchdog = prev.watchdog.overrideAttrs (old: {
+        nativeBuildInputs =
+          old.nativeBuildInputs
+          ++ final.resolveBuildSystem {
+            setuptools = [];
+          };
+      });
+    };
+
     pythonSets = forAllSystems (
       system: let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -55,6 +67,7 @@
           lib.composeManyExtensions [
             pyproject-build-systems.overlays.wheel
             overlay
+            pyprojectOverrides
           ]
         )
     );
